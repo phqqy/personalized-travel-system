@@ -322,6 +322,29 @@ def recommend_food():
     
     return jsonify(food[:n])
 
+# API: 旅游推荐 - 名校
+@app.route('/api/recommend/universities')
+def recommend_universities():
+    method = request.args.get('method', 'hot')
+    n = int(request.args.get('n', 6))
+    
+    # 模拟数据
+    universities = [
+        {"id": 1, "name": "北京大学", "rating": 4.9, "popularity": 98, "category": "高等学府", "location": "北京市海淀区"},
+        {"id": 2, "name": "清华大学", "rating": 4.9, "popularity": 97, "category": "高等学府", "location": "北京市海淀区"},
+        {"id": 3, "name": "复旦大学", "rating": 4.8, "popularity": 95, "category": "高等学府", "location": "上海市杨浦区"},
+        {"id": 4, "name": "上海交通大学", "rating": 4.8, "popularity": 94, "category": "高等学府", "location": "上海市闵行区"},
+        {"id": 5, "name": "浙江大学", "rating": 4.7, "popularity": 93, "category": "高等学府", "location": "浙江省杭州市"},
+        {"id": 6, "name": "南京大学", "rating": 4.7, "popularity": 92, "category": "高等学府", "location": "江苏省南京市"}
+    ]
+    
+    if method == 'rating':
+        universities.sort(key=lambda x: x['rating'], reverse=True)
+    else:  # hot
+        universities.sort(key=lambda x: x['popularity'], reverse=True)
+    
+    return jsonify(universities[:n])
+
 # API: 路线规划
 @app.route('/api/path/plan', methods=['POST'])
 def plan_path():
