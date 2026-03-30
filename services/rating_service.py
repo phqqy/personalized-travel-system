@@ -5,7 +5,6 @@
 评分服务模块
 """
 
-import os
 from datetime import datetime
 from config.settings import config
 from utils.storage import DataStorage
@@ -15,17 +14,11 @@ class RatingService:
     """评分服务类"""
     
     def __init__(self):
-        self.ratings = DataStorage.load_data(
-            os.path.join(os.path.dirname(config.USER_DATA_FILE), 'ratings.pkl'),
-            {}
-        )
+        self.ratings = DataStorage.load_data(config.RATING_DATA_FILE, {})
     
     def _save(self):
         """保存评分数据"""
-        DataStorage.save_data(
-            os.path.join(os.path.dirname(config.USER_DATA_FILE), 'ratings.pkl'),
-            self.ratings
-        )
+        DataStorage.save_data(config.RATING_DATA_FILE, self.ratings)
     
     def add_rating(self, username, target_type, target_id, rating, comment=''):
         """
