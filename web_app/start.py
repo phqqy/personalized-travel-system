@@ -9,12 +9,14 @@ import os
 import sys
 import subprocess
 
+
 def print_banner():
     """打印启动横幅"""
     print("=" * 50)
     print("个性化旅游系统 - 整合版Web前端")
     print("=" * 50)
     print("正在启动系统...")
+
 
 def check_dependencies():
     """检查依赖项"""
@@ -34,19 +36,23 @@ def check_dependencies():
             print("  pip install Flask")
             sys.exit(1)
 
+
 def start_app():
     """启动Flask应用"""
     print("启动Flask应用...")
     try:
-        # 切换到web_app目录
-        os.chdir(os.path.dirname(os.path.abspath(__file__)))
-        # 运行app.py
-        subprocess.run([sys.executable, "app.py"], check=True)
+        project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        sys.path.insert(0, project_dir)
+        from backend.app import main
+        main()
     except KeyboardInterrupt:
         print("\n系统已停止")
     except Exception as e:
         print(f"启动失败: {e}")
+        import traceback
+        traceback.print_exc()
         sys.exit(1)
+
 
 def main():
     """主函数"""
@@ -57,6 +63,7 @@ def main():
     print("\n按 Ctrl+C 停止系统")
     print("=" * 50)
     start_app()
+
 
 if __name__ == "__main__":
     main()
