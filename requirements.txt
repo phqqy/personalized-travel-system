@@ -3,8 +3,9 @@
 # 基础库
 Python>=3.7
 
-# 图形界面
-Tkinter  # 标准库，无需单独安装
+# Web框架
+Flask>=2.0.1  # Web框架
+Flask-CORS>=3.0.10  # 跨域支持
 
 # 数据处理
 networkx>=2.6.3  # 图结构处理

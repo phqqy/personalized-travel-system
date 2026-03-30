@@ -19,10 +19,10 @@
 
 ## 技术栈
 
-- **语言**：Python
-- **图形界面**：Tkinter
+- **后端**：Python, Flask
+- **前端**：React, Vite
 - **数据存储**：SQLite
-- **地图处理**：NetworkX
+- **地图处理**：NetworkX, Leaflet
 - **算法**：Dijkstra最短路径、排序算法、全文检索等
 
 ## 项目结构
@@ -31,8 +31,19 @@
 personalized-travel-system/
 ├── .gitignore                # Git忽略文件（Python专用+你的项目定制）
 ├── README.md                 # 项目说明、运行指南、功能介绍
-├── requirements.txt           # 依赖清单（Python库）
-├── main.py                   # 项目主入口（启动整个系统）
+├── requirements.txt           # 后端依赖清单（Python库）
+├── backend/                  # 后端代码
+│   ├── app.py                # 后端API服务
+├── frontend/                 # 前端代码
+│   ├── public/               # 静态资源
+│   ├── src/                  # 源代码
+│   │   ├── components/       # 组件
+│   │   ├── pages/            # 页面
+│   │   ├── services/         # API服务
+│   │   ├── App.jsx           # 应用入口
+│   │   └── main.jsx          # 主入口
+│   ├── package.json          # 前端依赖
+│   └── vite.config.js        # 构建配置
 ├── config/                   # 配置层（所有参数统一管理）
 │   ├── system.yml            # 系统配置（路径、规则、默认参数）
 │   ├── map.yml               # 地图配置（道路、速度、拥挤度、交通工具）
@@ -66,37 +77,73 @@ personalized-travel-system/
 │   ├── aigc_tool.py          # AIGC动画生成（照片→旅游动画）
 │   ├── file_util.py          # 文件工具（图片/视频/压缩）
 │   └── db_util.py            # 数据库操作工具
-├── services/                 # 业务服务层（核心功能）
-│   ├── recommend_service.py  # 旅游推荐（热度/评价/兴趣）
-│   ├── path_service.py       # 路线规划（多策略：距离/时间/交通工具/室内）
-│   ├── query_service.py      # 场所查询（附近设施、分类过滤）
-│   ├── diary_service.py      # 日记管理（增删改查、压缩、热度）
-│   ├── comment_service.py    # 日记交流（评分、全文检索）
-│   └── food_service.py       # 美食推荐（排序、模糊查询）
-└── gui/                      # 界面层（图形化+导航）
-    ├── main_window.py        # 主界面
-    ├── map_window.py         # 地图展示、路径可视化
-    ├── nav_window.py         # 导航界面（输入起点/终点/策略）
-    ├── diary_window.py       # 日记管理/交流界面
-    └── recommend_window.py   # 推荐/查询界面
+└── services/                 # 业务服务层（核心功能）
+    ├── recommend_service.py  # 旅游推荐（热度/评价/兴趣）
+    ├── path_service.py       # 路线规划（多策略：距离/时间/交通工具/室内）
+    ├── query_service.py      # 场所查询（附近设施、分类过滤）
+    ├── diary_service.py      # 日记管理（增删改查、压缩、热度）
+    ├── comment_service.py    # 日记交流（评分、全文检索）
+    └── food_service.py       # 美食推荐（排序、模糊查询）
 ```
 
 ## 安装说明
 
+### 后端安装
 1. 克隆项目到本地
-2. 安装依赖：
+2. 安装后端依赖：
 
    ```bash
    pip install -r requirements.txt
    ```
 
-3. 运行主程序：
+3. 启动后端服务：
 
    ```bash
-   python main.py
+   python backend/app.py
+   ```
+
+### 前端安装
+1. 安装前端依赖：
+
+   ```bash
+   cd frontend
+   npm install
+   ```
+
+2. 启动前端开发服务器：
+
+   ```bash
+   npm run dev
+   ```
+
+3. 构建生产版本：
+
+   ```bash
+   npm run build
    ```
 
 ## 使用方法
+
+### 简单Demo版本（推荐新手使用）
+
+1. **启动简单Demo**：
+   ```bash
+   cd simple_demo
+   python start.py
+   ```
+
+2. **访问系统**：
+   在浏览器中打开 http://localhost:5000
+
+3. **功能介绍**：
+   - **首页**：系统介绍和功能概览
+   - **旅游推荐**：查看系统推荐的景点和美食
+   - **路线规划**：输入起点和终点，选择规划策略
+   - **场所查询**：搜索附近的设施和场所
+   - **日记管理**：创建、查看旅游日记
+   - **地图展示**：查看地图和景点位置
+
+### 完整Web版本
 
 1. 启动系统后，在主界面选择需要的功能
 2. 旅游推荐：查看系统推荐的景点和美食
