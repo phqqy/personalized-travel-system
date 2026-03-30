@@ -53,6 +53,12 @@
                 <!-- 景点卡片将通过JavaScript动态添加 -->
             </div>
 
+            <!-- 名校游览 -->
+            <h2 style="margin-top: 60px; margin-bottom: 20px;">名校游览</h2>
+            <div class="recommend-container" id="universities-container">
+                <!-- 名校卡片将通过JavaScript动态添加 -->
+            </div>
+
             <!-- 美食推荐 -->
             <h2 id="food" style="margin-top: 60px; margin-bottom: 20px;">特色美食</h2>
             <div class="recommend-container" id="food-container">
@@ -138,6 +144,7 @@
 
             await loadSpots('hot');
             await loadFood('hot');
+            await loadUniversities('hot');
         }
 
         // 按评分推荐
@@ -153,6 +160,7 @@
 
             await loadSpots('rating');
             await loadFood('rating');
+            await loadUniversities('rating');
         }
 
         // 加载景点推荐
@@ -227,6 +235,45 @@
                 `).join('');
             } catch (error) {
                 console.error('加载美食推荐失败:', error);
+                container.innerHTML = '<p style="text-align: center; color: #e74c3c; padding: 50px;">加载失败，请重试</p>';
+            }
+        }
+
+        // 加载名校推荐
+        async function loadUniversities(method) {
+            const container = document.getElementById('universities-container');
+            container.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i><p>加载中...</p></div>';
+
+            try {
+                const response = await fetch(`/api/recommend/universities?method=${method}&n=6`);
+                const universities = await response.json();
+
+                // 名校图片映射
+                const universityImageMap = {
+                    '北京大学': '北京大学.jpg',
+                    '清华大学': '清华大学.jpg',
+                    '复旦大学': '复旦大学.jpg',
+                    '上海交通大学': '上海交通大学.jpg',
+                    '浙江大学': '浙江大学.jpg',
+                    '南京大学': '南京大学.jpg'
+                };
+
+                container.innerHTML = universities.map(university => `
+                    <div class="recommend-card">
+                        <a href="/map?spot=${encodeURIComponent(university.name)}" onclick="return checkLogin(event, '/map?spot=${encodeURIComponent(university.name)}')">
+                            <img src="/static/images/spots/${universityImageMap[university.name] || '故宫.jpg'}" alt="${university.name}" class="card-image">
+                            <div class="recommend-card-content">
+                                <h3>${university.name}</h3>
+                                <div class="rating">
+                                    <i class="fas fa-star"></i> ${university.rating} (热度: ${university.popularity})
+                                </div>
+                                <p>${university.category} · ${university.location}</p>
+                            </div>
+                        </a>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('加载名校推荐失败:', error);
                 container.innerHTML = '<p style="text-align: center; color: #e74c3c; padding: 50px;">加载失败，请重试</p>';
             }
         }
