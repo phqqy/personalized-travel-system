@@ -29,8 +29,9 @@ class Config:
     PORT = 5000
     
     # 数据文件路径
-    USER_DATA_FILE = os.path.join(WEB_APP_DIR, 'user_data.pkl')
-    DIARY_DATA_FILE = os.path.join(WEB_APP_DIR, 'diary_data.pkl')
+    USER_DATA_FILE = os.path.join(DB_DIR, 'user_data.pkl')
+    DIARY_DATA_FILE = os.path.join(DB_DIR, 'diary_data.pkl')
+    RATING_DATA_FILE = os.path.join(DB_DIR, 'ratings.pkl')
     
     # 静态文件配置
     STATIC_FOLDER = 'static'
