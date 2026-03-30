@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>场所查询 - 个性化旅游系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/main.css">
+</head>
+
+<body class="query-page">
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <a href="/" class="logo">
+                <i class="fas fa-map-marked-alt"></i> 个性化旅游系统
+            </a>
+            <ul class="nav-links">
+                <li><a href="/recommend"><i class="fas fa-star"></i> 旅游推荐</a></li>
+                <li><a href="/path"><i class="fas fa-route"></i> 路线规划</a></li>
+                <li><a href="/query"><i class="fas fa-search"></i> 场所查询</a></li>
+                <li><a href="/diary"><i class="fas fa-book"></i> 日记管理</a></li>
+                <li><a href="/map"><i class="fas fa-map"></i> 地图展示</a></li>
+                <li id="user-links" class="user-auth-links">
+                    <a href="/login"><i class="fas fa-sign-in-alt"></i> 登录</a>
+                    <a href="/register"><i class="fas fa-user-plus"></i> 注册</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 页面标题 -->
+    <section class="page-header">
+        <div class="container">
+            <h1>场所查询</h1>
+            <p>根据类别、名称和位置查询各类场所，包括景点、餐厅、酒店等</p>
+        </div>
+    </section>
+
+    <!-- 内容区 -->
+    <section class="content">
+        <div class="container">
+            <!-- 查询表单 -->
+            <div class="query-form">
+                <h2>查询场所</h2>
+                <div class="form-group">
+                    <label for="query-keyword">关键词</label>
+                    <input type="text" id="query-keyword" placeholder="请输入场所名称或关键词">
+                </div>
+                <div class="form-group">
+                    <label for="query-category">类别</label>
+                    <select id="query-category"
+                        style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
+                        <option value="all">全部</option>
+                        <option value="景点">景点</option>
+                        <option value="餐厅">餐厅</option>
+                        <option value="酒店">酒店</option>
+                        <option value="购物">购物</option>
+                        <option value="交通">交通</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="query-location">位置</label>
+                    <input type="text" id="query-location" placeholder="请输入位置">
+                </div>
+                <button class="btn btn-primary" onclick="searchPlaces()">查询</button>
+            </div>
+
+            <!-- 查询结果 -->
+            <div id="query-results" style="margin-top: 30px;"></div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>关于我们</h3>
+                    <p>个性化旅游系统致力于为用户提供便捷、智能的旅游服务，让每一次旅行都成为难忘的回忆。</p>
+                </div>
+
+                <div class="footer-section">
+                    <h3>联系我们</h3>
+                    <ul>
+                        <li><i class="fas fa-envelope"></i> contact@travel-system.com</li>
+                        <li><i class="fas fa-phone"></i> 123-456-7890</li>
+                        <li><i class="fas fa-map-marker-alt"></i> 北京市海淀区</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 个性化旅游系统. 保留所有权利.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 检查用户登录状态
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch('/api/user/status');
+                const data = await response.json();
+                const userLinks = document.getElementById('user-links');
+
+                if (data.logged_in) {
+                    userLinks.innerHTML = `
+                        <span style="margin-right: 15px; color: #3498db; font-weight: 500;">欢迎，${data.user_name}</span>
+                        <a href="/logout"><i class="fas fa-sign-out-alt"></i> 退出</a>
+                    `;
+                } else {
+                    userLinks.innerHTML = `
+                        <a href="/login"><i class="fas fa-sign-in-alt"></i> 登录</a>
+                        <a href="/register"><i class="fas fa-user-plus"></i> 注册</a>
+                    `;
+                }
+            } catch (error) {
+                console.error('检查登录状态失败:', error);
+            }
+        }
+
+        // 页面加载时检查登录状态
+        window.onload = checkLoginStatus;
+
+        // 查询场所
+        async function searchPlaces() {
+            const keyword = document.getElementById('query-keyword').value;
+            const category = document.getElementById('query-category').value;
+            const location = document.getElementById('query-location').value;
+
+            const resultsDiv = document.getElementById('query-results');
+            resultsDiv.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i><p>查询中...</p></div>';
+
+            try {
+                const response = await fetch('/api/query/places', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ keyword, category, location })
+                });
+                const places = await response.json();
+
+                if (places.length === 0) {
+                    resultsDiv.innerHTML = '<p style="text-align: center; color: #7f8c8d; padding: 50px;">未找到匹配的场所</p>';
+                    return;
+                }
+
+                resultsDiv.innerHTML = `
+                    <h2>查询结果 (${places.length} 个)</h2>
+                    <div class="query-results">
+                        ${places.map(place => `
+                            <div class="query-card">
+                                <h3>${place.name}</h3>
+                                <div class="icon ${getIconClass(place.category)}"></div>
+                                <p><strong>类别:</strong> ${place.category}</p>
+                                <p><strong>位置:</strong> ${place.location}</p>
+                                <p><strong>评分:</strong> <i class="fas fa-star" style="color: #f39c12;"></i> ${place.rating}</p>
+                                <p><strong>简介:</strong> ${place.description}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('查询场所失败:', error);
+                resultsDiv.innerHTML = '<p style="text-align: center; color: #e74c3c; padding: 50px;">查询失败，请重试</p>';
+            }
+        }
+
+        // 根据类别获取图标类名
+        function getIconClass(category) {
+            const iconMap = {
+                '景点': 'icon-spot',
+                '餐厅': 'icon-restaurant',
+                '酒店': 'icon-hotel',
+                '购物': 'icon-shopping',
+                '交通': 'icon-transport'
+            };
+            return iconMap[category] || '';
+        }
+    </script>
+</body>
+
+</html>

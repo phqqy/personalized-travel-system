@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旅游推荐 - 个性化旅游系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/main.css">
+</head>
+
+<body class="recommend-page">
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <a href="/" class="logo">
+                <i class="fas fa-map-marked-alt"></i> 个性化旅游系统
+            </a>
+            <ul class="nav-links">
+                <li><a href="/" class="home-link"><i class="fas fa-home"></i> 首页</a></li>
+                <li><a href="/recommend"><i class="fas fa-star"></i> 旅游推荐</a></li>
+                <li><a href="/diary"><i class="fas fa-book"></i> 日记管理</a></li>
+                <li id="user-links" class="user-auth-links">
+                    <a href="/login"><i class="fas fa-sign-in-alt"></i> 登录</a>
+                    <a href="/register"><i class="fas fa-user-plus"></i> 注册</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 页面标题 -->
+    <section class="page-header">
+        <div class="container">
+            <h1>旅游推荐</h1>
+            <p>基于热度、评价和用户兴趣的个性化推荐</p>
+        </div>
+    </section>
+
+    <!-- 内容区 -->
+    <section class="content">
+        <div class="container">
+            <!-- 推荐选项 -->
+            <div class="btn-group">
+                <button id="hot-btn" class="btn btn-primary" onclick="recommendByHot()"
+                    style="padding: 10px 20px; border: none; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.3s; background-color: #3498db; color: white;">热门推荐</button>
+                <button id="rating-btn" class="btn btn-secondary" onclick="recommendByRating()"
+                    style="padding: 10px 20px; border: 1px solid #3498db; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.3s; background-color: white; color: #3498db;">评分推荐</button>
+            </div>
+
+            <!-- 景点推荐 -->
+            <h2 style="margin-top: 40px; margin-bottom: 20px;">热门景点</h2>
+            <div class="recommend-container" id="spots-container">
+                <!-- 景点卡片将通过JavaScript动态添加 -->
+            </div>
+
+            <!-- 美食推荐 -->
+            <h2 id="food" style="margin-top: 60px; margin-bottom: 20px;">特色美食</h2>
+            <div class="recommend-container" id="food-container">
+                <!-- 美食卡片将通过JavaScript动态添加 -->
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>关于我们</h3>
+                    <p>个性化旅游系统致力于为用户提供便捷、智能的旅游服务，让每一次旅行都成为难忘的回忆。</p>
+                </div>
+
+                <div class="footer-section">
+                    <h3>联系我们</h3>
+                    <ul>
+                        <li><i class="fas fa-envelope"></i> contact@travel-system.com</li>
+                        <li><i class="fas fa-phone"></i> 123-456-7890</li>
+                        <li><i class="fas fa-map-marker-alt"></i> 北京市海淀区</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 个性化旅游系统. 保留所有权利.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 检查用户登录状态
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch('/api/user/status');
+                const data = await response.json();
+                const userLinks = document.getElementById('user-links');
+
+                if (data.logged_in) {
+                    userLinks.innerHTML = `
+                        <span style="margin-right: 15px; color: #3498db; font-weight: 500;">欢迎，${data.user_name}</span>
+                        <a href="/logout"><i class="fas fa-sign-out-alt"></i> 退出</a>
+                    `;
+                } else {
+                    userLinks.innerHTML = `
+                        <a href="/login"><i class="fas fa-sign-in-alt"></i> 登录</a>
+                        <a href="/register"><i class="fas fa-user-plus"></i> 注册</a>
+                    `;
+                }
+            } catch (error) {
+                console.error('检查登录状态失败:', error);
+            }
+        }
+
+        // 页面加载时检查登录状态
+        window.onload = function () {
+            checkLoginStatus();
+            recommendByHot().then(() => {
+                // 检查URL中是否包含#food锚点，如果包含则滚动到该位置
+                if (window.location.hash === '#food') {
+                    setTimeout(() => {
+                        const foodSection = document.getElementById('food');
+                        if (foodSection) {
+                            foodSection.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }, 500);
+                }
+            });
+        };
+
+        // 按热度推荐
+        async function recommendByHot() {
+            // 更新按钮样式
+            document.getElementById('hot-btn').style.backgroundColor = '#3498db';
+            document.getElementById('hot-btn').style.color = 'white';
+            document.getElementById('hot-btn').style.border = 'none';
+
+            document.getElementById('rating-btn').style.backgroundColor = 'white';
+            document.getElementById('rating-btn').style.color = '#3498db';
+            document.getElementById('rating-btn').style.border = '1px solid #3498db';
+
+            await loadSpots('hot');
+            await loadFood('hot');
+        }
+
+        // 按评分推荐
+        async function recommendByRating() {
+            // 更新按钮样式
+            document.getElementById('rating-btn').style.backgroundColor = '#3498db';
+            document.getElementById('rating-btn').style.color = 'white';
+            document.getElementById('rating-btn').style.border = 'none';
+
+            document.getElementById('hot-btn').style.backgroundColor = 'white';
+            document.getElementById('hot-btn').style.color = '#3498db';
+            document.getElementById('hot-btn').style.border = '1px solid #3498db';
+
+            await loadSpots('rating');
+            await loadFood('rating');
+        }
+
+        // 加载景点推荐
+        async function loadSpots(method) {
+            const container = document.getElementById('spots-container');
+            container.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i><p>加载中...</p></div>';
+
+            try {
+                const response = await fetch(`/api/recommend/spots?method=${method}&n=6`);
+                const spots = await response.json();
+
+                // 景点图片映射
+                const spotImageMap = {
+                    '故宫': '故宫.jpg',
+                    '长城': '长城.jpg',
+                    '颐和园': '颐和园.jpg',
+                    '天坛': '天坛.jpg',
+                    '天安门': '天安门.jpg',
+                    '圆明园': '圆明园.jpg'
+                };
+
+                container.innerHTML = spots.map(spot => `
+                    <div class="recommend-card">
+                        <a href="/map?spot=${encodeURIComponent(spot.name)}" onclick="return checkLogin(event, '/map?spot=${encodeURIComponent(spot.name)}')">
+                            <img src="/static/images/spots/${spotImageMap[spot.name] || '故宫.jpg'}" alt="${spot.name}" class="card-image">
+                            <div class="recommend-card-content">
+                                <h3>${spot.name}</h3>
+                                <div class="rating">
+                                    <i class="fas fa-star"></i> ${spot.rating} (热度: ${spot.popularity})
+                                </div>
+                                <p>${spot.category} · ${spot.location}</p>
+                            </div>
+                        </a>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('加载景点推荐失败:', error);
+                container.innerHTML = '<p style="text-align: center; color: #e74c3c; padding: 50px;">加载失败，请重试</p>';
+            }
+        }
+
+        // 加载美食推荐
+        async function loadFood(method) {
+            const container = document.getElementById('food-container');
+            container.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i><p>加载中...</p></div>';
+
+            try {
+                const response = await fetch(`/api/recommend/food?method=${method}&n=6`);
+                const food = await response.json();
+
+                // 美食图片映射
+                const foodImageMap = {
+                    '北京烤鸭': '北京烤鸭.jpg',
+                    '炸酱面': '炸酱面.jpg',
+                    '豆汁': '豆汁.jpg',
+                    '炒肝': '炒肝.jpg',
+                    '卤煮火烧': '卤煮火烧.jpg',
+                    '涮羊肉': '涮羊肉.jpg'
+                };
+
+                container.innerHTML = food.map(item => `
+                    <div class="recommend-card">
+                        <img src="/static/images/food/${foodImageMap[item.name] || '北京烤鸭.jpg'}" alt="${item.name}" class="card-image">
+                        <div class="recommend-card-content">
+                            <h3>${item.name}</h3>
+                            <div class="rating">
+                                <i class="fas fa-star"></i> ${item.rating} (热度: ${item.popularity})
+                            </div>
+                            <p>${item.category} · ${item.location}</p>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('加载美食推荐失败:', error);
+                container.innerHTML = '<p style="text-align: center; color: #e74c3c; padding: 50px;">加载失败，请重试</p>';
+            }
+        }
+    </script>
+</body>
+
+</html>
