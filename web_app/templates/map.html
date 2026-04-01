@@ -4,13 +4,288 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>地图展示 - 个性化旅游系统</title>
+    <title>地图 - 个性化旅游系统</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/css/main.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .map-container {
+            height: calc(100vh - 60px);
+            width: 100%;
+        }
+
+        #container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .amap-logo {
+            display: none !important;
+        }
+
+        .amap-copyright {
+            display: none !important;
+        }
+
+        .right-sidebar {
+            position: absolute;
+            top: 60px;
+            right: -320px;
+            width: 320px;
+            height: calc(100vh - 60px);
+            background: white;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transition: right 0.3s ease;
+        }
+
+        .right-sidebar.open {
+            right: 0;
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            left: -40px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            width: 40px;
+            height: 80px;
+            border-radius: 8px 0 0 8px;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .sidebar-toggle i {
+            font-size: 18px;
+            color: #1890ff;
+            transition: transform 0.3s ease;
+        }
+
+        .right-sidebar.open .sidebar-toggle i {
+            transform: rotate(180deg);
+        }
+
+        .sidebar-content {
+            padding: 20px;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .sidebar-content h3 {
+            margin: 0 0 20px 0;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .sidebar-section {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .sidebar-section h4 {
+            margin: 0 0 10px 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: #1890ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-primary:hover {
+            background: #40a9ff;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-secondary:hover {
+            background: #e6e6e6;
+        }
+
+        .full-width {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .location-info {
+            font-size: 13px;
+            color: #666;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            min-height: 20px;
+        }
+
+        .transport-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .transport-option {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .transport-option:hover {
+            background: #f5f5f5;
+        }
+
+        .transport-option input {
+            margin-right: 10px;
+        }
+
+        .transport-option i {
+            margin-right: 8px;
+            color: #1890ff;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .sidebar-actions {
+            margin-top: 20px;
+        }
+
+        .route-result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f8ff;
+            border-radius: 8px;
+            border-left: 4px solid #1890ff;
+        }
+
+        .result-item {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+        }
+
+        .result-item i {
+            margin-right: 10px;
+            color: #1890ff;
+        }
+
+        .home-button {
+            position: absolute;
+            top: 70px;
+            left: 20px;
+            background: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 999;
+            transition: all 0.2s ease;
+        }
+
+        .home-button:hover {
+            background: #f5f5f5;
+            transform: scale(1.05);
+        }
+
+        .home-button i {
+            font-size: 20px;
+            color: #1890ff;
+        }
+
+        .route-info-panel {
+            position: absolute;
+            top: 70px;
+            left: 74px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+            z-index: 999;
+            min-width: 200px;
+            display: none;
+        }
+
+        .route-info-panel h4 {
+            margin: 0 0 12px 0;
+            color: #333;
+            font-size: 14px;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 8px;
+        }
+
+        .route-info-item {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .route-info-item i {
+            margin-right: 10px;
+            color: #1890ff;
+            width: 16px;
+            text-align: center;
+        }
+    </style>
 </head>
 
-<body class="map-page">
-    <!-- 导航栏 -->
+<body>
     <nav class="navbar">
         <div class="container navbar-container">
             <a href="/" class="logo">
@@ -20,9 +295,7 @@
                 <li><a href="/" class="home-link"><i class="fas fa-home"></i> 首页</a></li>
                 <li><a href="/recommend"><i class="fas fa-star"></i> 旅游推荐</a></li>
                 <li><a href="/diary"><i class="fas fa-book"></i> 日记管理</a></li>
-                <li><a href="/map#path-plan"><i class="fas fa-route"></i> 路线规划</a></li>
-                <li><a href="/map#place-query"><i class="fas fa-search"></i> 场所查询</a></li>
-                <li><a href="/map"><i class="fas fa-map"></i> 地图展示</a></li>
+                <li><a href="/map" class="active"><i class="fas fa-map"></i> 地图</a></li>
                 <li id="user-links" class="user-auth-links">
                     <a href="/login"><i class="fas fa-sign-in-alt"></i> 登录</a>
                     <a href="/register"><i class="fas fa-user-plus"></i> 注册</a>
@@ -31,139 +304,113 @@
         </div>
     </nav>
 
-    <!-- 页面标题 -->
-    <section class="page-header">
-        <div class="container">
-            <h1>地图展示</h1>
-            <p>交互式地图展示，支持地点标记和路线显示</p>
+    <div class="map-container">
+        <div id="container"></div>
+
+        <div class="home-button" onclick="goHome()" title="返回初始位置">
+            <i class="fas fa-crosshairs"></i>
         </div>
-    </section>
 
-    <!-- 内容区 -->
-    <section class="content">
-        <div class="container">
-            <!-- 功能标签页 -->
-            <div
-                style="background-color: white; padding: 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); margin-bottom: 20px;">
-                <!-- 标签页导航 -->
-                <div style="display: flex; border-bottom: 1px solid #e0e0e0;">
-                    <button class="tab-btn active" onclick="switchTab('map-view')"
-                        style="padding: 15px 20px; border: none; background: none; cursor: pointer; font-size: 16px; font-weight: 500; border-bottom: 3px solid #3498db; color: #3498db;">地图浏览</button>
-                    <button class="tab-btn" onclick="switchTab('path-plan')"
-                        style="padding: 15px 20px; border: none; background: none; cursor: pointer; font-size: 16px; font-weight: 500; border-bottom: 3px solid transparent; color: #7f8c8d;">路线规划</button>
-                    <button class="tab-btn" onclick="switchTab('place-query')"
-                        style="padding: 15px 20px; border: none; background: none; cursor: pointer; font-size: 16px; font-weight: 500; border-bottom: 3px solid transparent; color: #7f8c8d;">场所查询</button>
-                </div>
+        <div class="route-info-panel" id="route-info-panel">
+            <h4><i class="fas fa-route"></i> 路线信息</h4>
+            <div class="route-info-item">
+                <i class="fas fa-road"></i>
+                <span>距离: <span id="result-distance">0</span> 米</span>
+            </div>
+            <div class="route-info-item">
+                <i class="fas fa-clock"></i>
+                <span>时间: <span id="result-time">0</span> 分钟</span>
+            </div>
+            <div class="route-info-item">
+                <i class="fas fa-car"></i>
+                <span>交通: <span id="result-transport">驾车</span></span>
+            </div>
+        </div>
 
-                <!-- 地图浏览标签页 -->
-                <div id="map-view" class="tab-content" style="padding: 20px;">
-                    <h3>地图浏览</h3>
+        <div class="right-sidebar" id="right-sidebar">
+            <div class="sidebar-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-chevron-left" id="sidebar-toggle-icon"></i>
+            </div>
+            <div class="sidebar-content">
+                <h3><i class="fas fa-route"></i> 导航中心</h3>
+
+                <div class="sidebar-section">
+                    <h4>起点设置</h4>
                     <div class="input-group">
-                        <input type="text" id="map-search" placeholder="搜索地点"
-                            style="flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 4px;">
-                        <button class="btn btn-primary" onclick="searchOnMap()">搜索</button>
+                        <input type="text" id="start-input" placeholder="输入起点（如：五道口）" />
+                        <button onclick="setStartFromInput()" class="btn-primary">
+                            <i class="fas fa-search"></i>
+                        </button>
                     </div>
-                    <div style="margin-top: 15px;">
-                        <button class="btn btn-secondary" onclick="showSpots()">显示景点</button>
-                        <button class="btn btn-secondary" onclick="showRestaurants()">显示餐厅</button>
-                        <button class="btn btn-secondary" onclick="showHotels()">显示酒店</button>
-                        <button class="btn btn-secondary" onclick="clearMarkers()">清除标记</button>
+                    <div id="start-info" class="location-info">
+                        未设置
                     </div>
                 </div>
 
-                <!-- 路线规划标签页 -->
-                <div id="path-plan" class="tab-content" style="padding: 20px; display: none;">
-                    <h3>路线规划</h3>
-                    <div class="form-group">
-                        <label for="start">起点</label>
-                        <input type="text" id="start" placeholder="请输入起点">
+                <div class="sidebar-section">
+                    <h4>终点设置</h4>
+                    <div class="input-group">
+                        <input type="text" id="end-input" placeholder="输入终点（如：中关村）" />
+                        <button onclick="setEndFromInput()" class="btn-primary">
+                            <i class="fas fa-search"></i>
+                        </button>
                     </div>
-                    <div class="form-group">
-                        <label for="end">终点</label>
-                        <input type="text" id="end" placeholder="请输入终点">
-                    </div>
-                    <div class="form-group">
-                        <label for="strategy">规划策略</label>
-                        <select id="strategy"
-                            style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
-                            <option value="shortest">最短距离</option>
-                            <option value="fastest">最快时间</option>
-                            <option value="least_crowded">最少拥挤</option>
-                        </select>
-                    </div>
-                    <button class="btn btn-primary" onclick="planPath()">规划路线</button>
-                    <div id="path-result" style="margin-top: 20px; display: none;">
-                        <h4>路线结果</h4>
-                        <div id="path-details"></div>
+                    <div id="end-info" class="location-info">
+                        未设置
                     </div>
                 </div>
 
-                <!-- 场所查询标签页 -->
-                <div id="place-query" class="tab-content" style="padding: 20px; display: none;">
-                    <h3>场所查询</h3>
-                    <div class="form-group">
-                        <label for="query-keyword">关键词</label>
-                        <input type="text" id="query-keyword" placeholder="请输入场所名称或关键词">
+                <div class="sidebar-section">
+                    <h4>交通方式</h4>
+                    <div class="transport-options">
+                        <label class="transport-option">
+                            <input type="radio" name="transport" value="driving" checked />
+                            <i class="fas fa-car"></i>
+                            <span>驾车</span>
+                        </label>
+                        <label class="transport-option">
+                            <input type="radio" name="transport" value="walking" />
+                            <i class="fas fa-walking"></i>
+                            <span>步行</span>
+                        </label>
+                        <label class="transport-option">
+                            <input type="radio" name="transport" value="bicycling" />
+                            <i class="fas fa-bicycle"></i>
+                            <span>骑行</span>
+                        </label>
                     </div>
-                    <div class="form-group">
-                        <label for="query-category">类别</label>
-                        <select id="query-category"
-                            style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
-                            <option value="all">全部</option>
-                            <option value="景点">景点</option>
-                            <option value="餐厅">餐厅</option>
-                            <option value="酒店">酒店</option>
-                            <option value="购物">购物</option>
-                            <option value="交通">交通</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="query-location">位置</label>
-                        <input type="text" id="query-location" placeholder="请输入位置">
-                    </div>
-                    <button class="btn btn-primary" onclick="searchPlaces()">查询</button>
-                    <div id="query-results" style="margin-top: 20px;"></div>
                 </div>
-            </div>
 
-            <!-- 地图容器 -->
-            <div id="map"></div>
-
-            <!-- 地点信息 -->
-            <div id="place-info"
-                style="background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); margin-top: 20px; display: none;">
-                <h2 id="place-name"></h2>
-                <div id="place-details"></div>
+                <div class="sidebar-actions">
+                    <button onclick="startNavigation()" class="btn-primary full-width">
+                        <i class="fas fa-map-signs"></i> 开始导航
+                    </button>
+                    <button onclick="clearRoute()" class="btn-secondary full-width">
+                        <i class="fas fa-eraser"></i> 清除路线
+                    </button>
+                </div>
             </div>
         </div>
-    </section>
+    </div>
 
-    <!-- 页脚 -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>关于我们</h3>
-                    <p>个性化旅游系统致力于为用户提供便捷、智能的旅游服务，让每一次旅行都成为难忘的回忆。</p>
-                </div>
-
-                <div class="footer-section">
-                    <h3>联系我们</h3>
-                    <ul>
-                        <li><i class="fas fa-envelope"></i> contact@travel-system.com</li>
-                        <li><i class="fas fa-phone"></i> 123-456-7890</li>
-                        <li><i class="fas fa-map-marker-alt"></i> 北京市海淀区</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2026 个性化旅游系统. 保留所有权利.</p>
-            </div>
-        </div>
-    </footer>
-
+    <script type="text/javascript">
+        window._AMapSecurityConfig = {
+            securityJsCode: '50f4e08548220138394d4e0b47ca4767'
+        };
+    </script>
+    <script type="text/javascript"
+        src="https://webapi.amap.com/maps?v=2.0&key=1d5753eadd7aa612016c702852090aea&plugin=AMap.Geocoder,AMap.PlaceSearch,AMap.Driving,AMap.Walking,AMap.Riding"></script>
     <script>
-        // 检查用户登录状态
+        let map;
+        let placeSearch;
+        let currentRoutePlugin = null;
+        let searchMarkers = [];
+        let currentSettingType = null;
+        window.startPoint = null;
+        window.endPoint = null;
+
+        const center = [116.397, 39.909]; // 北京中心点
+
         async function checkLoginStatus() {
             try {
                 const response = await fetch('/api/user/status');
@@ -172,13 +419,13 @@
 
                 if (data.logged_in) {
                     userLinks.innerHTML = `
-                        <span style="margin-right: 15px; color: #3498db; font-weight: 500;">欢迎，${data.user_name}</span>
-                        <a href="/logout"><i class="fas fa-sign-out-alt"></i> 退出</a>
+                        <span style="margin-right: 15px; color: #3498db; font-weight: 500; display: inline-block; vertical-align: middle;">欢迎，${data.user_name}</span>
+                        <a href="/logout" style="display: inline-block; vertical-align: middle;"><i class="fas fa-sign-out-alt"></i> 退出</a>
                     `;
                 } else {
                     userLinks.innerHTML = `
-                        <a href="/login"><i class="fas fa-sign-in-alt"></i> 登录</a>
-                        <a href="/register"><i class="fas fa-user-plus"></i> 注册</a>
+                        <a href="/login" style="display: inline-block; vertical-align: middle;"><i class="fas fa-sign-in-alt"></i> 登录</a>
+                        <a href="/register" style="margin-left: 10px; display: inline-block; vertical-align: middle;"><i class="fas fa-user-plus"></i> 注册</a>
                     `;
                 }
             } catch (error) {
@@ -186,464 +433,360 @@
             }
         }
 
-        // 页面加载时检查登录状态
         window.onload = function () {
+            console.log('页面加载完成');
             checkLoginStatus();
             initMap();
-            
-            // 处理URL锚点，自动切换到对应的标签页
-            if (window.location.hash) {
-                const hash = window.location.hash.substring(1); // 移除#符号
-                if (hash === 'path-plan' || hash === 'place-query') {
-                    // 找到对应的标签按钮并点击
-                    const tabButtons = document.getElementsByClassName('tab-btn');
-                    for (let i = 0; i < tabButtons.length; i++) {
-                        if (tabButtons[i].onclick.toString().includes(hash)) {
-                            tabButtons[i].click();
-                            break;
-                        }
-                    }
-                }
-            }
-            
-            // 处理URL参数，显示特定景点
+
             const urlParams = new URLSearchParams(window.location.search);
             const spotName = urlParams.get('spot');
             if (spotName) {
-                // 在地图上显示该景点
-                showSpotOnMap(spotName);
+                console.log('从URL获取到景点名称:', spotName);
+                setTimeout(() => {
+                    autoLocateSpot(spotName);
+                }, 1000);
             }
         };
-        
-        // 在地图上显示特定景点
-        function showSpotOnMap(spotName) {
-            // 模拟在地图上显示景点
-            const mapElement = document.getElementById('map');
-            mapElement.innerHTML = `
-                <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f0f0f0; border-radius: 8px;">
-                    <div style="text-align: center;">
-                        <i class="fas fa-map-marker-alt" style="font-size: 48px; color: #e74c3c; margin-bottom: 20px;"></i>
-                        <h3>正在显示景点: ${spotName}</h3>
-                        <p style="margin-top: 10px; color: #7f8c8d;">地图加载中...</p>
-                    </div>
-                </div>
-            `;
-            
-            // 模拟加载延迟
-            setTimeout(() => {
-                mapElement.innerHTML = `
-                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f0f0f0; border-radius: 8px;">
-                        <div style="text-align: center;">
-                            <i class="fas fa-map-marked-alt" style="font-size: 48px; color: #3498db; margin-bottom: 20px;"></i>
-                            <h3>景点: ${spotName}</h3>
-                            <p style="margin-top: 10px; color: #7f8c8d;">已在地图上标记该景点位置</p>
-                            <div style="margin-top: 20px; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: inline-block;">
-                                <h4>景点信息</h4>
-                                <p>位置: 北京市海淀区</p>
-                                <p>评分: 4.5/5.0</p>
-                                <p>热度: 95%</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }, 1000);
-        }
 
-        // 标签页切换功能
-        function switchTab(tabId) {
-            // 隐藏所有标签内容
-            const tabContents = document.getElementsByClassName('tab-content');
-            for (let i = 0; i < tabContents.length; i++) {
-                tabContents[i].style.display = 'none';
-            }
+        function autoLocateSpot(spotName) {
+            console.log('开始自动定位:', spotName);
 
-            // 移除所有标签按钮的活跃状态
-            const tabBtns = document.getElementsByClassName('tab-btn');
-            for (let i = 0; i < tabBtns.length; i++) {
-                tabBtns[i].style.borderBottom = '3px solid transparent';
-                tabBtns[i].style.color = '#7f8c8d';
-                tabBtns[i].classList.remove('active');
-            }
+            const tempSearch = new AMap.PlaceSearch({
+                pageSize: 10,
+                city: '全国',
+                extensions: 'all'
+            });
 
-            // 显示当前标签内容
-            document.getElementById(tabId).style.display = 'block';
+            tempSearch.search(spotName, function (status, result) {
+                console.log('自动定位搜索回调:', status, result);
 
-            // 设置当前标签按钮为活跃状态
-            event.currentTarget.style.borderBottom = '3px solid #3498db';
-            event.currentTarget.style.color = '#3498db';
-            event.currentTarget.classList.add('active');
+                if (status === 'complete' && result.poiList && result.poiList.pois.length > 0) {
+                    const poi = result.poiList.pois[0];
+                    console.log('找到目标POI:', poi);
 
-            // 根据标签类型更新地图内容
-            if (tabId === 'map-view') {
-                initMap();
-            } else if (tabId === 'path-plan') {
-                updateMapForPath();
-            } else if (tabId === 'place-query') {
-                updateMapForQuery();
-            }
-        }
+                    window.startPoint = {
+                        name: poi.name,
+                        lng: poi.location.lng,
+                        lat: poi.location.lat
+                    };
 
-        // 初始化地图
-        function initMap() {
-            // 这里可以集成第三方地图API，如百度地图、高德地图等
-            // 暂时使用模拟数据
-            const mapElement = document.getElementById('map');
-            mapElement.innerHTML = `
-                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #f0f0f0; border-radius: 8px;">
-                    <div style="text-align: center;">
-                        <i class="fas fa-map-marked-alt" style="font-size: 64px; color: #3498db; margin-bottom: 20px;"></i>
-                        <h3>地图加载中...</h3>
-                        <p>请等待地图初始化完成</p>
-                    </div>
-                </div>
-            `;
+                    document.getElementById('start-info').innerHTML = poi.name;
+                    document.getElementById('start-input').value = poi.name;
+                    map.setZoomAndCenter(16, [poi.location.lng, poi.location.lat]);
 
-            // 模拟地图加载完成
-            setTimeout(() => {
-                mapElement.innerHTML = `
-                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #e3f2fd; border-radius: 8px; position: relative;">
-                        <div style="text-align: center; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
-                            <i class="fas fa-map-marked-alt" style="font-size: 48px; color: #3498db; margin-bottom: 20px;"></i>
-                            <h3>地图浏览</h3>
-                            <p>地图功能正在开发中，敬请期待</p>
-                            <p style="margin-top: 10px; font-size: 14px; color: #757575;">您可以使用地图控制按钮来查看不同类型的地点</p>
-                        </div>
-                    </div>
-                `;
-            }, 1000);
-        }
-
-        // 更新地图为路线规划模式
-        function updateMapForPath() {
-            const mapElement = document.getElementById('map');
-            mapElement.innerHTML = `
-                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #e3f2fd; border-radius: 8px; position: relative;">
-                    <div style="text-align: center; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
-                        <i class="fas fa-route" style="font-size: 48px; color: #3498db; margin-bottom: 20px;"></i>
-                        <h3>路线规划</h3>
-                        <p>请在上方输入起点和终点，选择规划策略</p>
-                        <p style="margin-top: 10px; font-size: 14px; color: #757575;">点击"规划路线"按钮查看路线结果</p>
-                    </div>
-                </div>
-            `;
-        }
-
-        // 更新地图为场所查询模式
-        function updateMapForQuery() {
-            const mapElement = document.getElementById('map');
-            mapElement.innerHTML = `
-                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #e3f2fd; border-radius: 8px; position: relative;">
-                    <div style="text-align: center; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
-                        <i class="fas fa-search" style="font-size: 48px; color: #3498db; margin-bottom: 20px;"></i>
-                        <h3>场所查询</h3>
-                        <p>请在上方输入关键词、选择类别和位置</p>
-                        <p style="margin-top: 10px; font-size: 14px; color: #757575;">点击"查询"按钮查看结果</p>
-                    </div>
-                </div>
-            `;
-        }
-
-        // 在地图上搜索
-        function searchOnMap() {
-            const keyword = document.getElementById('map-search').value;
-            if (!keyword) {
-                alert('请输入搜索关键词');
-                return;
-            }
-
-            const mapElement = document.getElementById('map');
-            mapElement.innerHTML = `
-                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #e3f2fd; border-radius: 8px; position: relative;">
-                    <div style="text-align: center; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
-                        <i class="fas fa-search" style="font-size: 48px; color: #3498db; margin-bottom: 20px;"></i>
-                        <h3>搜索结果</h3>
-                        <p>正在搜索 "${keyword}" 的相关地点...</p>
-                        <p style="margin-top: 10px; font-size: 14px; color: #757575;">搜索结果将在地图上显示</p>
-                    </div>
-                </div>
-            `;
-
-            // 模拟搜索完成
-            setTimeout(() => {
-                mapElement.innerHTML = `
-                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #e3f2fd; border-radius: 8px; position: relative;">
-                        <div style="text-align: center; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
-                            <i class="fas fa-map-marker-alt" style="font-size: 48px; color: #e74c3c; margin-bottom: 20px;"></i>
-                            <h3>搜索结果</h3>
-                            <p>找到与 "${keyword}" 相关的 3 个地点</p>
-                            <div style="margin-top: 15px; text-align: left;">
-                                <p><i class="fas fa-map-marker-alt"></i> 地点 1: 位于北京市东城区</p>
-                                <p><i class="fas fa-map-marker-alt"></i> 地点 2: 位于北京市西城区</p>
-                                <p><i class="fas fa-map-marker-alt"></i> 地点 3: 位于北京市海淀区</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                // 显示地点信息
-                const placeInfo = document.getElementById('place-info');
-                const placeName = document.getElementById('place-name');
-                const placeDetails = document.getElementById('place-details');
-
-                placeName.textContent = keyword;
-                placeDetails.innerHTML = `
-                    <p><strong>位置:</strong> 北京市海淀区</p>
-                    <p><strong>类型:</strong> 景点</p>
-                    <p><strong>评分:</strong> <i class="fas fa-star" style="color: #f39c12;"></i> 4.5</p>
-                    <p><strong>简介:</strong> 这是一个模拟的地点信息，实际应用中会显示真实的地点详情。</p>
-                `;
-                placeInfo.style.display = 'block';
-            }, 1500);
-        }
-
-        // 显示景点
-        function showSpots() {
-            const mapElement = document.getElementById('map');
-            mapElement.innerHTML = `
-                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #e3f2fd; border-radius: 8px; position: relative;">
-                    <div style="text-align: center; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
-                        <i class="fas fa-mountain" style="font-size: 48px; color: #27ae60; margin-bottom: 20px;"></i>
-                        <h3>景点标记</h3>
-                        <p>已在地图上显示热门景点</p>
-                        <div style="margin-top: 15px; text-align: left;">
-                            <p><i class="fas fa-map-marker-alt"></i> 故宫</p>
-                            <p><i class="fas fa-map-marker-alt"></i> 长城</p>
-                            <p><i class="fas fa-map-marker-alt"></i> 颐和园</p>
-                            <p><i class="fas fa-map-marker-alt"></i> 天坛</p>
-                            <p><i class="fas fa-map-marker-alt"></i> 天安门</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // 显示餐厅
-        function showRestaurants() {
-            const mapElement = document.getElementById('map');
-            mapElement.innerHTML = `
-                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #e3f2fd; border-radius: 8px; position: relative;">
-                    <div style="text-align: center; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
-                        <i class="fas fa-utensils" style="font-size: 48px; color: #f39c12; margin-bottom: 20px;"></i>
-                        <h3>餐厅标记</h3>
-                        <p>已在地图上显示推荐餐厅</p>
-                        <div style="margin-top: 15px; text-align: left;">
-                            <p><i class="fas fa-map-marker-alt"></i> 全聚德烤鸭店</p>
-                            <p><i class="fas fa-map-marker-alt"></i> 海底捞火锅</p>
-                            <p><i class="fas fa-map-marker-alt"></i> 东来顺饭庄</p>
-                            <p><i class="fas fa-map-marker-alt"></i> 护国寺小吃</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // 显示酒店
-        function showHotels() {
-            const mapElement = document.getElementById('map');
-            mapElement.innerHTML = `
-                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #e3f2fd; border-radius: 8px; position: relative;">
-                    <div style="text-align: center; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
-                        <i class="fas fa-hotel" style="font-size: 48px; color: #9b59b6; margin-bottom: 20px;"></i>
-                        <h3>酒店标记</h3>
-                        <p>已在地图上显示推荐酒店</p>
-                        <div style="margin-top: 15px; text-align: left;">
-                            <p><i class="fas fa-map-marker-alt"></i> 北京饭店</p>
-                            <p><i class="fas fa-map-marker-alt"></i> 王府井希尔顿酒店</p>
-                            <p><i class="fas fa-map-marker-alt"></i> 国贸大酒店</p>
-                            <p><i class="fas fa-map-marker-alt"></i> 长城饭店</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // 清除标记
-        function clearMarkers() {
-            const mapElement = document.getElementById('map');
-            mapElement.innerHTML = `
-                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #e3f2fd; border-radius: 8px; position: relative;">
-                    <div style="text-align: center; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
-                        <i class="fas fa-map-marked-alt" style="font-size: 48px; color: #3498db; margin-bottom: 20px;"></i>
-                        <h3>地图浏览</h3>
-                        <p>地图功能正在开发中，敬请期待</p>
-                        <p style="margin-top: 10px; font-size: 14px; color: #757575;">您可以使用地图控制按钮来查看不同类型的地点</p>
-                    </div>
-                </div>
-            `;
-        }
-
-        // 规划路线
-        function planPath() {
-            const start = document.getElementById('start').value;
-            const end = document.getElementById('end').value;
-            const strategy = document.getElementById('strategy').value;
-
-            if (!start || !end) {
-                alert('请输入起点和终点');
-                return;
-            }
-
-            // 显示加载状态
-            const mapElement = document.getElementById('map');
-            mapElement.innerHTML = `
-                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #e3f2fd; border-radius: 8px; position: relative;">
-                    <div style="text-align: center; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
-                        <i class="fas fa-spinner fa-spin" style="font-size: 48px; color: #3498db; margin-bottom: 20px;"></i>
-                        <h3>路线规划中...</h3>
-                        <p>正在计算从 "${start}" 到 "${end}" 的路线</p>
-                        <p style="margin-top: 10px; font-size: 14px; color: #757575;">请稍候...</p>
-                    </div>
-                </div>
-            `;
-
-            // 模拟路线规划完成
-            setTimeout(() => {
-                mapElement.innerHTML = `
-                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #e3f2fd; border-radius: 8px; position: relative;">
-                        <div style="text-align: center; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
-                            <i class="fas fa-route" style="font-size: 48px; color: #27ae60; margin-bottom: 20px;"></i>
-                            <h3>路线规划结果</h3>
-                            <p>从 "${start}" 到 "${end}" 的${getStrategyText(strategy)}路线</p>
-                            <div style="margin-top: 15px; text-align: left;">
-                                <p><i class="fas fa-info-circle"></i> 总距离: 10.5 公里</p>
-                                <p><i class="fas fa-info-circle"></i> 预计时间: 25 分钟</p>
-                                <p><i class="fas fa-info-circle"></i> 途经 3 个地点</p>
-                                <p><i class="fas fa-info-circle"></i> 路线已在地图上显示</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                // 显示路线详情
-                const pathResult = document.getElementById('path-result');
-                const pathDetails = document.getElementById('path-details');
-                pathDetails.innerHTML = `
-                    <p><strong>起点:</strong> ${start}</p>
-                    <p><strong>终点:</strong> ${end}</p>
-                    <p><strong>规划策略:</strong> ${getStrategyText(strategy)}</p>
-                    <p><strong>总距离:</strong> 10.5 公里</p>
-                    <p><strong>预计时间:</strong> 25 分钟</p>
-                    <p><strong>途经地点:</strong></p>
-                    <ul>
-                        <li>地点 1: 位于北京市东城区</li>
-                        <li>地点 2: 位于北京市西城区</li>
-                        <li>地点 3: 位于北京市海淀区</li>
-                    </ul>
-                `;
-                pathResult.style.display = 'block';
-            }, 2000);
-        }
-
-        // 获取策略文本
-        function getStrategyText(strategy) {
-            switch (strategy) {
-                case 'shortest': return '最短距离';
-                case 'fastest': return '最快时间';
-                case 'least_crowded': return '最少拥挤';
-                default: return '最短距离';
-            }
-        }
-
-        // 搜索场所
-        function searchPlaces() {
-            const keyword = document.getElementById('query-keyword').value;
-            const category = document.getElementById('query-category').value;
-            const location = document.getElementById('query-location').value;
-
-            // 显示加载状态
-            const mapElement = document.getElementById('map');
-            mapElement.innerHTML = `
-                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #e3f2fd; border-radius: 8px; position: relative;">
-                    <div style="text-align: center; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
-                        <i class="fas fa-spinner fa-spin" style="font-size: 48px; color: #3498db; margin-bottom: 20px;"></i>
-                        <h3>搜索中...</h3>
-                        <p>正在查询相关场所</p>
-                        <p style="margin-top: 10px; font-size: 14px; color: #757575;">请稍候...</p>
-                    </div>
-                </div>
-            `;
-
-            // 模拟搜索完成
-            setTimeout(() => {
-                mapElement.innerHTML = `
-                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #e3f2fd; border-radius: 8px; position: relative;">
-                        <div style="text-align: center; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
-                            <i class="fas fa-search" style="font-size: 48px; color: #27ae60; margin-bottom: 20px;"></i>
-                            <h3>搜索结果</h3>
-                            <p>找到 ${category === 'all' ? '5' : '3'} 个相关场所</p>
-                            <p style="margin-top: 10px; font-size: 14px; color: #757575;">搜索结果已在地图上显示</p>
-                        </div>
-                    </div>
-                `;
-
-                // 显示查询结果
-                const queryResults = document.getElementById('query-results');
-                queryResults.innerHTML = `
-                    <h4>查询结果</h4>
-                    <div style="max-height: 300px; overflow-y: auto;">
-                        ${generateQueryResults(category)}
-                    </div>
-                `;
-            }, 1500);
-        }
-
-        // 生成查询结果
-        function generateQueryResults(category) {
-            let results = '';
-            const places = {
-                '景点': [
-                    { name: '故宫', location: '北京市东城区', rating: 4.8 },
-                    { name: '长城', location: '北京市怀柔区', rating: 4.7 },
-                    { name: '颐和园', location: '北京市海淀区', rating: 4.6 }
-                ],
-                '餐厅': [
-                    { name: '全聚德烤鸭店', location: '北京市东城区', rating: 4.5 },
-                    { name: '海底捞火锅', location: '北京市朝阳区', rating: 4.6 },
-                    { name: '东来顺饭庄', location: '北京市西城区', rating: 4.4 }
-                ],
-                '酒店': [
-                    { name: '北京饭店', location: '北京市东城区', rating: 4.7 },
-                    { name: '王府井希尔顿酒店', location: '北京市东城区', rating: 4.8 },
-                    { name: '国贸大酒店', location: '北京市朝阳区', rating: 4.6 }
-                ],
-                '购物': [
-                    { name: '王府井步行街', location: '北京市东城区', rating: 4.5 },
-                    { name: '西单商场', location: '北京市西城区', rating: 4.4 },
-                    { name: '国贸商城', location: '北京市朝阳区', rating: 4.7 }
-                ],
-                '交通': [
-                    { name: '北京南站', location: '北京市丰台区', rating: 4.6 },
-                    { name: '北京站', location: '北京市东城区', rating: 4.5 },
-                    { name: '首都国际机场', location: '北京市顺义区', rating: 4.7 }
-                ]
-            };
-
-            if (category === 'all') {
-                // 显示所有类别
-                for (const [cat, placeList] of Object.entries(places)) {
-                    results += `<h5>${cat}</h5>`;
-                    placeList.forEach(place => {
-                        results += `
-                            <div style="padding: 10px; border-bottom: 1px solid #eee;">
-                                <p><strong>${place.name}</strong> - ${place.location}</p>
-                                <p style="font-size: 14px; color: #7f8c8d;">评分: ${place.rating}</p>
-                            </div>
-                        `;
-                    });
+                    updateSearchCity(poi.location.lng, poi.location.lat);
+                    updateCurrentCenter(poi.location.lng, poi.location.lat);
+                    console.log('自动设置起点成功:', window.startPoint);
+                } else {
+                    console.log('未找到该地点');
                 }
-            } else {
-                // 显示特定类别
-                places[category].forEach(place => {
-                    results += `
-                        <div style="padding: 10px; border-bottom: 1px solid #eee;">
-                            <p><strong>${place.name}</strong> - ${place.location}</p>
-                            <p style="font-size: 14px; color: #7f8c8d;">评分: ${place.rating}</p>
-                        </div>
-                    `;
+            });
+        }
+
+        let geocoder;
+        let currentCity = '全国';
+
+        function initMap() {
+            console.log('开始初始化地图');
+            map = new AMap.Map('container', {
+                zoom: 15,
+                center: center,
+                viewMode: '2D'
+            });
+
+            map.on('complete', function () {
+                console.log('地图加载完成');
+            });
+
+            placeSearch = new AMap.PlaceSearch({
+                map: null,
+                pageSize: 10,
+                city: currentCity,
+                extensions: 'all'
+            });
+
+            AMap.plugin('AMap.Geocoder', function () {
+                geocoder = new AMap.Geocoder();
+            });
+
+            console.log('placeSearch初始化完成');
+        }
+
+        function updateSearchCity(lng, lat) {
+            console.log('更新搜索城市, 坐标:', lng, lat);
+            if (geocoder) {
+                geocoder.getAddress([lng, lat], function (status, result) {
+                    if (status === 'complete' && result.regeocode) {
+                        const addressComponent = result.regeocode.addressComponent;
+                        currentCity = addressComponent.city || addressComponent.province || '全国';
+                        console.log('当前城市:', currentCity);
+
+                        placeSearch.setCity(currentCity);
+                    }
                 });
             }
+        }
 
-            return results;
+        function toggleSidebar() {
+            console.log('toggleSidebar被调用');
+            const sidebar = document.getElementById('right-sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        let currentMapCenter = center;
+
+        function goHome() {
+            console.log('goHome被调用');
+            let targetCenter = center;
+
+            if (window.startPoint) {
+                targetCenter = [window.startPoint.lng, window.startPoint.lat];
+                console.log('返回起点位置:', window.startPoint.name);
+            } else {
+                targetCenter = map.getCenter().toArray();
+                console.log('返回当前地图中心');
+            }
+
+            map.setZoomAndCenter(15, targetCenter);
+        }
+
+        function updateCurrentCenter(lng, lat) {
+            currentMapCenter = [lng, lat];
+        }
+
+        function calculateDistance(lng1, lat1, lng2, lat2) {
+            const R = 6371000;
+            const φ1 = lat1 * Math.PI / 180;
+            const φ2 = lat2 * Math.PI / 180;
+            const Δφ = (lat2 - lat1) * Math.PI / 180;
+            const Δλ = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        function clearSearchMarkers() {
+            for (const marker of searchMarkers) {
+                map.remove(marker);
+            }
+            searchMarkers = [];
+        }
+
+        function showSearchMarkers(pois, settingType) {
+            clearSearchMarkers();
+
+            for (let i = 0; i < pois.length; i++) {
+                const poi = pois[i];
+                const marker = new AMap.Marker({
+                    position: [poi.location.lng, poi.location.lat],
+                    title: poi.name,
+                    map: map
+                });
+
+                marker.on('click', function () {
+                    console.log('点击了标记:', poi);
+
+                    if (settingType === 'start') {
+                        window.startPoint = {
+                            name: poi.name,
+                            lng: poi.location.lng,
+                            lat: poi.location.lat
+                        };
+                        document.getElementById('start-info').innerHTML = poi.name;
+                        updateSearchCity(poi.location.lng, poi.location.lat);
+                        updateCurrentCenter(poi.location.lng, poi.location.lat);
+                        console.log('设置起点成功:', window.startPoint);
+                    } else if (settingType === 'end') {
+                        window.endPoint = {
+                            name: poi.name,
+                            lng: poi.location.lng,
+                            lat: poi.location.lat
+                        };
+                        document.getElementById('end-info').innerHTML = poi.name;
+                        console.log('设置终点成功:', window.endPoint);
+                    }
+
+                    map.setZoomAndCenter(16, [poi.location.lng, poi.location.lat]);
+                    clearSearchMarkers();
+                });
+
+                searchMarkers.push(marker);
+            }
+
+            if (pois.length > 0) {
+                map.setZoomAndCenter(15, [pois[0].location.lng, pois[0].location.lat]);
+            }
+        }
+
+        function setStartFromInput() {
+            console.log('setStartFromInput被调用');
+            const input = document.getElementById('start-input');
+            const keyword = input.value;
+            console.log('搜索起点关键词:', keyword);
+
+            if (!keyword) {
+                alert('请输入起点关键词');
+                return;
+            }
+
+            document.getElementById('start-info').innerHTML = '正在搜索，请点击地图上的标记选择...';
+
+            placeSearch.search(keyword, function (status, result) {
+                console.log('起点搜索回调:', status, result);
+
+                if (status === 'complete' && result.poiList && result.poiList.pois.length > 0) {
+                    const pois = result.poiList.pois;
+                    console.log('搜索到的POI数量:', pois.length);
+
+                    showSearchMarkers(pois, 'start');
+                    console.log('显示起点搜索标记，共', pois.length, '个');
+                } else {
+                    document.getElementById('start-info').innerHTML = '未找到地点';
+                    alert('未找到该地点，请尝试其他关键词');
+                }
+            });
+        }
+
+        function setEndFromInput() {
+            console.log('setEndFromInput被调用');
+            const input = document.getElementById('end-input');
+            const keyword = input.value;
+            console.log('搜索终点关键词:', keyword);
+
+            if (!keyword) {
+                alert('请输入终点关键词');
+                return;
+            }
+
+            document.getElementById('end-info').innerHTML = '正在搜索，请点击地图上的标记选择...';
+
+            placeSearch.search(keyword, function (status, result) {
+                console.log('终点搜索回调:', status, result);
+
+                if (status === 'complete' && result.poiList && result.poiList.pois.length > 0) {
+                    const pois = result.poiList.pois;
+                    console.log('搜索到的POI数量:', pois.length);
+
+                    showSearchMarkers(pois, 'end');
+                    console.log('显示终点搜索标记，共', pois.length, '个');
+                } else {
+                    document.getElementById('end-info').innerHTML = '未找到地点';
+                    alert('未找到该地点，请尝试其他关键词');
+                }
+            });
+        }
+
+        function startNavigation() {
+            console.log('startNavigation被调用');
+            console.log('当前起点:', window.startPoint);
+            console.log('当前终点:', window.endPoint);
+
+            if (!window.startPoint) {
+                alert('请先设置起点！');
+                return;
+            }
+            if (!window.endPoint) {
+                alert('请先设置终点！');
+                return;
+            }
+
+            const transport = document.querySelector('input[name="transport"]:checked').value;
+            console.log('选择的交通方式:', transport);
+
+            if (currentRoutePlugin) {
+                currentRoutePlugin.clear();
+            }
+
+            if (transport === 'driving') {
+                AMap.plugin('AMap.Driving', function () {
+                    currentRoutePlugin = new AMap.Driving({
+                        map: map,
+                        panel: null
+                    });
+                    currentRoutePlugin.search(
+                        new AMap.LngLat(window.startPoint.lng, window.startPoint.lat),
+                        new AMap.LngLat(window.endPoint.lng, window.endPoint.lat),
+                        handleRouteResult
+                    );
+                });
+            } else if (transport === 'walking') {
+                AMap.plugin('AMap.Walking', function () {
+                    currentRoutePlugin = new AMap.Walking({
+                        map: map
+                    });
+                    currentRoutePlugin.search(
+                        new AMap.LngLat(window.startPoint.lng, window.startPoint.lat),
+                        new AMap.LngLat(window.endPoint.lng, window.endPoint.lat),
+                        handleRouteResult
+                    );
+                });
+            } else if (transport === 'bicycling') {
+                AMap.plugin('AMap.Riding', function () {
+                    currentRoutePlugin = new AMap.Riding({
+                        map: map
+                    });
+                    currentRoutePlugin.search(
+                        new AMap.LngLat(window.startPoint.lng, window.startPoint.lat),
+                        new AMap.LngLat(window.endPoint.lng, window.endPoint.lat),
+                        handleRouteResult
+                    );
+                });
+            }
+        }
+
+        function handleRouteResult(status, result) {
+            console.log('handleRouteResult被调用:', status, result);
+            if (status === 'complete') {
+                const route = result.routes[0];
+                console.log('路线信息:', route);
+
+                const distance = Math.round(route.distance);
+                const time = Math.round(route.time / 60);
+
+                document.getElementById('result-distance').textContent = distance;
+                document.getElementById('result-time').textContent = time;
+                document.getElementById('result-transport').textContent = getTransportName();
+                document.getElementById('route-info-panel').style.display = 'block';
+
+                console.log('显示路线信息 - 距离:', distance, '米, 时间:', time, '分钟');
+
+                map.setFitView();
+            } else {
+                alert('规划路线失败：' + result);
+            }
+        }
+
+        function getTransportName() {
+            const transport = document.querySelector('input[name="transport"]:checked').value;
+            if (transport === 'driving') return '驾车';
+            if (transport === 'walking') return '步行';
+            if (transport === 'bicycling') return '骑行';
+            return '驾车';
+        }
+
+        function clearRoute() {
+            console.log('clearRoute被调用');
+
+            clearSearchMarkers();
+
+            if (currentRoutePlugin) {
+                try {
+                    currentRoutePlugin.clear();
+                    console.log('已清除路线规划插件');
+                } catch (e) {
+                    console.log('清除路线规划插件时出错:', e);
+                }
+                currentRoutePlugin = null;
+            }
+
+            // 只清除路线和标记，不改变地图中心位置
+            map.clearMap();
+
+            // 不清除起点终点信息，只清除路线显示
+            document.getElementById('route-info-panel').style.display = 'none';
+            console.log('清除路线完成');
         }
     </script>
 </body>
