@@ -17,7 +17,6 @@ from backend.routes.main import main_bp
 from backend.routes.auth import auth_bp
 from backend.routes.diary import diary_bp
 from backend.routes.recommend import recommend_bp
-from backend.routes.travel import travel_bp
 from backend.routes.rating import rating_bp
 
 
@@ -42,7 +41,6 @@ def register_blueprints(app):
     app.register_blueprint(auth_bp)
     app.register_blueprint(diary_bp)
     app.register_blueprint(recommend_bp)
-    app.register_blueprint(travel_bp)
     app.register_blueprint(rating_bp)
 
 
