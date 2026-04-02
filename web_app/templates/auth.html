@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录/注册 - 个性化旅游系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 导航栏 */
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
+        }
+
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 600;
+            color: #3498db;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .nav-links a:hover {
+            color: #3498db;
+        }
+
+        /* 主容器 */
+        .container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .auth-wrapper {
+            width: 100%;
+            max-width: 1000px;
+            position: relative;
+        }
+
+        .auth-container {
+            width: 100%;
+            height: 550px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 表单面板 - 左侧（默认登录） */
+        .form-panel {
+            position: absolute;
+            top: 0;
+            width: 65%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.6s ease;
+        }
+
+        .form-panel.login {
+            left: 0;
+            transform: translateX(0);
+        }
+
+        .form-panel.register {
+            right: 0;
+            transform: translateX(100%);
+        }
+
+        /* 注册模式下，表单面板对向移动 */
+        .auth-container.register-mode .form-panel.login {
+            transform: translateX(-100%);
+        }
+
+        .auth-container.register-mode .form-panel.register {
+            transform: translateX(0);
+        }
+
+        .form-box {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .form-box h2 {
+            font-size: 28px;
+            margin-bottom: 30px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 350px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #1abc9c;
+        }
+
+        .btn-green {
+            background: #1abc9c;
+            color: white;
+            margin-top: 25px;
+            width: 100%;
+            max-width: 350px;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 20px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-green:hover {
+            background: #16a085;
+        }
+
+        .test-account-info {
+            background-color: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+            width: 100%;
+            max-width: 350px;
+            font-size: 13px;
+        }
+
+        .test-account-info p {
+            margin: 0;
+            color: #2c3e50;
+        }
+
+        .test-account-info code {
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        .error-message {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c00;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 350px;
+            font-size: 14px;
+        }
+
+        .success-message {
+            background: #efe;
+            border: 1px solid #cfc;
+            color: #080;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 350px;
+            font-size: 14px;
+        }
+
+        /* 绿色面板 - 右侧（默认显示注册相关） */
+        .green-panel {
+            position: absolute;
+            top: 0;
+            width: 35%;
+            height: 100%;
+            background: linear-gradient(135deg, #1abc9c, #16a085);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 40px;
+            transition: transform 0.6s ease;
+            z-index: 10;
+        }
+
+        .green-panel {
+            right: 0;
+            transform: translateX(0);
+        }
+
+        /* 注册模式下，绿色面板移动到左侧 */
+        .auth-container.register-mode .green-panel {
+            transform: translateX(-185.7%);
+        }
+
+        .green-panel .register-content {
+            display: none;
+        }
+
+        .auth-container.register-mode .green-panel .login-content {
+            display: none;
+        }
+
+        .auth-container.register-mode .green-panel .register-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .green-panel h2 {
+            font-size: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .green-panel p {
+            margin-bottom: 30px;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .btn-white {
+            background: white;
+            color: #1abc9c;
+            padding: 10px 30px;
+            border: none;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-white:hover {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .auth-container {
+                height: auto;
+                min-height: 600px;
+            }
+
+            .form-panel {
+                position: relative;
+                width: 100%;
+                transform: none !important;
+            }
+
+            .form-panel.login,
+            .form-panel.register {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
+
+            .form-box.register {
+                display: none;
+            }
+
+            .auth-container.register-mode .form-box.login {
+                display: none;
+            }
+
+            .auth-container.register-mode .form-box.register {
+                display: flex;
+            }
+
+            .green-panel {
+                position: relative;
+                width: 100%;
+                height: 200px;
+                transform: none !important;
+            }
+
+            .auth-container.register-mode .green-panel {
+                transform: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="logo">
+                <i class="fas fa-map-marked-alt"></i> 个性化旅游系统
+            </a>
+            <ul class="nav-links">
+                <li><a href="/" class="home-link"><i class="fas fa-home"></i> 首页</a></li>
+                <li><a href="/recommend"><i class="fas fa-star"></i> 旅游推荐</a></li>
+                <li><a href="/diary"><i class="fas fa-book"></i> 日记管理</a></li>
+                <li id="user-links" class="user-auth-links">
+                    <a href="/login"><i class="fas fa-sign-in-alt"></i> 登录/注册</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="auth-wrapper">
+            <div class="auth-container" id="authContainer">
+                <!-- 登录表单 - 左侧（默认） -->
+                <div class="form-panel login">
+                    <div class="form-box login">
+                        <h2>账户登录</h2>
+
+                        <!-- 测试账号信息 -->
+                        <!-- <div class="test-account-info">
+                            <p>
+                                <i class="fas fa-info-circle" style="color: #3498db; margin-right: 5px;"></i>
+                                <strong>测试账号：</strong>用户名: <code>test</code> 密码: <code>123456</code>
+                            </p>
+                        </div> -->
+
+                        {% if error and request.endpoint == 'auth.login' %}
+                        <div class="error-message">{{ error }}</div>
+                        {% endif %}
+
+                        {% if success and request.endpoint == 'auth.login' %}
+                        <div class="success-message">{{ success }}</div>
+                        {% endif %}
+
+                        <form action="/login" method="POST">
+                            <div class="form-group">
+                                <input type="text" name="username" placeholder="用户名" required>
+                            </div>
+                            <div class="form-group">
+                                <input type="password" name="password" placeholder="密码" required>
+                            </div>
+                            <button type="submit" class="btn-green">登录</button>
+                        </form>
+                        <br></br>
+                        <div class="test-account-info">
+                            <p>
+                                <i class="fas fa-info-circle" style="color: #3498db; margin-right: 5px;"></i>
+                                <strong>测试账号：</strong>用户名: <code>test</code> 密码: <code>123456</code>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 注册表单 - 右侧 -->
+                <div class="form-panel register">
+                    <div class="form-box register">
+                        <h2>创建账户</h2>
+
+                        {% if error and request.endpoint == 'auth.register' %}
+                        <div class="error-message">{{ error }}</div>
+                        {% endif %}
+
+                        {% if success and request.endpoint == 'auth.register' %}
+                        <div class="success-message">{{ success }}</div>
+                        {% endif %}
+
+                        <form action="/register" method="POST">
+                            <div class="form-group">
+                                <input type="text" name="username" placeholder="用户名" required>
+                            </div>
+                            <div class="form-group">
+                                <input type="password" name="password" placeholder="密码" required>
+                            </div>
+                            <div class="form-group">
+                                <input type="password" name="confirm_password" placeholder="确认密码" required>
+                            </div>
+                            <button type="submit" class="btn-green">注册</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 绿色面板 - 右侧（默认显示注册相关） -->
+                <div class="green-panel">
+                    <div class="login-content">
+                        <h2>你好，朋友！</h2>
+                        <p>还没有账号？立即注册加入我们</p>
+                        <button class="btn-white" id="showRegister">注册</button>
+                    </div>
+                    <div class="register-content">
+                        <h2>欢迎回来！</h2>
+                        <p>已有账号？立即登录继续体验</p>
+                        <button class="btn-white" id="showLogin">登录</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const authContainer = document.getElementById('authContainer');
+            const showLogin = document.getElementById('showLogin');
+            const showRegister = document.getElementById('showRegister');
+
+            function toggleRegisterMode(enable) {
+                if (enable) {
+                    authContainer.classList.add('register-mode');
+                } else {
+                    authContainer.classList.remove('register-mode');
+                }
+            }
+
+            showLogin.addEventListener('click', function () {
+                toggleRegisterMode(false);
+            });
+
+            showRegister.addEventListener('click', function () {
+                toggleRegisterMode(true);
+            });
+
+            // 根据当前页面自动切换表单
+            if (window.location.pathname === '/register') {
+                toggleRegisterMode(true);
+            } else {
+                toggleRegisterMode(false);
+            }
+        });
+    </script>
+</body>
+
+</html>

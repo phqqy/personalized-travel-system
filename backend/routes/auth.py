@@ -19,7 +19,7 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        
+
         if user_service.verify_user(username, password):
             session['user_id'] = username
             user = user_service.get_user(username)
@@ -27,10 +27,10 @@ def login():
             return redirect(url_for('main.index'))
         else:
             if user_service.user_exists(username):
-                return render_template('login.html', error='密码错误')
+                return render_template('auth.html', error='密码错误')
             else:
-                return render_template('login.html', error='用户不存在')
-    return render_template('login.html')
+                return render_template('auth.html', error='用户不存在')
+    return render_template('auth.html')
 
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
@@ -38,20 +38,20 @@ def register():
     """注册页面"""
     if request.method == 'POST':
         username = request.form['username']
-        email = request.form['email']
+        email = request.form.get('email', '')
         password = request.form['password']
         confirm_password = request.form['confirm_password']
-        
+
         if user_service.user_exists(username):
-            return render_template('register.html', error='用户名已存在')
-        
+            return render_template('auth.html', error='用户名已存在')
+
         if password != confirm_password:
-            return render_template('register.html', error='两次密码不一致')
-        
+            return render_template('auth.html', error='两次密码不一致')
+
         if user_service.create_user(username, email, password):
             diary_service.init_user_diaries(username)
-            return render_template('login.html', success='注册成功，请登录')
-    return render_template('register.html')
+            return render_template('auth.html', success='注册成功，请登录')
+    return render_template('auth.html')
 
 
 @auth_bp.route('/logout')
