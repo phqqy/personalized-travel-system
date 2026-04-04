@@ -7,289 +7,423 @@
     <title>日记管理 - 个性化旅游系统</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/css/main.css">
+    <style>
+        .login-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .login-modal-box {
+            background: white;
+            border-radius: 12px;
+            padding: 32px 40px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .login-modal-icon {
+            font-size: 48px;
+            color: #f39c12;
+            margin-bottom: 16px;
+        }
+
+        .login-modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .login-modal-desc {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 24px;
+        }
+
+        .login-modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .login-modal-btn-primary {
+            padding: 10px 28px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .login-modal-btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .login-modal-btn-cancel {
+            padding: 10px 28px;
+            background: #ecf0f1;
+            color: #7f8c8d;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .login-modal-btn-cancel:hover {
+            background: #dde4e6;
+        }
+    </style>
 </head>
 
 <body class="diary-page">
-    <!-- 导航栏 -->
-    <nav class="navbar">
-        <div class="container navbar-container">
-            <a href="/" class="logo">
-                <i class="fas fa-map-marked-alt"></i> 个性化旅游系统
-            </a>
-            <ul class="nav-links">
-                <li><a href="/" class="home-link"><i class="fas fa-home"></i> 首页</a></li>
-                <li><a href="/recommend"><i class="fas fa-star"></i> 旅游推荐</a></li>
-                <li><a href="/diary"><i class="fas fa-book"></i> 日记管理</a></li>
-                <li id="user-links">
-                    <a href="/login"><i class="fas fa-sign-in-alt"></i> 登录</a>
-                </li>
-            </ul>
-        </div>
-    </nav>
+    <div id="app">
+        <!-- 导航栏 -->
+        <nav class="navbar">
+            <div class="container navbar-container">
+                <a href="/" class="logo">
+                    <i class="fas fa-map-marked-alt"></i> 个性化旅游系统
+                </a>
+                <ul class="nav-links">
+                    <li><a href="/" class="home-link"><i class="fas fa-home"></i> 首页</a></li>
+                    <li><a href="/recommend" @click.prevent="checkLoginAndGo($event, '/recommend')"><i
+                                class="fas fa-star"></i> 旅游推荐</a></li>
+                    <li><a href="/diary"><i class="fas fa-book"></i> 日记管理</a></li>
+                    <li v-if="!isLoggedIn" id="user-links">
+                        <a href="/login"><i class="fas fa-sign-in-alt"></i> 登录</a>
+                        <a href="/register" style="margin-left: 10px;"><i class="fas fa-user-plus"></i> 注册</a>
+                    </li>
+                    <li v-else id="user-links">
+                        <span
+                            style="margin-right: 15px; color: #3498db; font-weight: 500; display: inline-block; vertical-align: middle;">欢迎，{$
+                            userName $}</span>
+                        <a href="/logout" @click.prevent="handleLogout"
+                            style="display: inline-block; vertical-align: middle;"><i class="fas fa-sign-out-alt"></i>
+                            退出</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
 
-    <!-- 页面标题 -->
-    <section class="page-header">
-        <div class="container">
-            <h1>日记管理</h1>
-            <p>记录您的旅游经历</p>
-        </div>
-    </section>
+        <!-- 页面标题 -->
+        <section class="page-header">
+            <div class="container">
+                <h1>日记管理</h1>
+                <p>记录您的旅游经历</p>
+            </div>
+        </section>
 
-    <!-- 内容区 -->
-    <section class="content">
-        <div class="container">
-            <div class="diary-container">
-                <!-- 日记表单 -->
-                <div class="diary-form">
-                    <h2>创建/编辑日记</h2>
-                    <input type="hidden" id="diary-id">
-                    <div class="form-group">
-                        <label>标题:</label>
-                        <input type="text" id="diary-title" placeholder="请输入日记标题">
-                    </div>
-                    <div class="form-group">
-                        <label>内容:</label>
-                        <textarea id="diary-content" placeholder="请输入日记内容"></textarea>
-                    </div>
-                    <button class="btn btn-primary" onclick="saveDiary()"
-                        style="width: 100%; padding: 12px; border: none; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.3s; background-color: #3498db; color: white;">保存日记</button>
-                    <button class="btn btn-secondary" onclick="clearForm()"
-                        style="width: 100%; margin-top: 10px; padding: 12px; border: 1px solid #3498db; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.3s; background-color: white; color: #3498db;">清空</button>
-                </div>
-
-                <!-- 日记列表 -->
-                <div class="diary-list">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2>我的日记</h2>
-                        <div style="display: flex; gap: 10px;">
-                            <button class="btn btn-secondary" onclick="exportDiary()"><i class="fas fa-download"></i>
-                                导出日记</button>
-                            <input type="file" id="import-file" style="display: none;" accept=".json">
-                            <button class="btn btn-primary" onclick="document.getElementById('import-file').click()"><i
-                                    class="fas fa-upload"></i> 导入日记</button>
+        <!-- 内容区 -->
+        <section class="content">
+            <div class="container">
+                <div class="diary-container">
+                    <!-- 日记表单 -->
+                    <div class="diary-form">
+                        <h2>创建/编辑日记</h2>
+                        <input type="hidden" :value="currentDiaryId || ''">
+                        <div class="form-group">
+                            <label>标题:</label>
+                            <input type="text" v-model="formTitle" placeholder="请输入日记标题">
                         </div>
+                        <div class="form-group">
+                            <label>内容:</label>
+                            <textarea v-model="formContent" placeholder="请输入日记内容"></textarea>
+                        </div>
+                        <button class="btn btn-primary" @click="saveDiary"
+                            style="width: 100%; padding: 12px; border: none; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.3s; background-color: #3498db; color: white;">保存日记</button>
+                        <button class="btn btn-secondary" @click="clearForm"
+                            style="width: 100%; margin-top: 10px; padding: 12px; border: 1px solid #3498db; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.3s; background-color: white; color: #3498db;">清空</button>
                     </div>
-                    <div id="loading" class="loading" style="display: none;">
-                        <i class="fas fa-spinner"></i>
-                        <p>加载中...</p>
+
+                    <!-- 日记列表 -->
+                    <div class="diary-list">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h2>我的日记</h2>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn btn-secondary" @click="exportDiary"><i class="fas fa-download"></i>
+                                    导出日记</button>
+                                <input type="file" ref="importFileInput" style="display: none;" accept=".json"
+                                    @change="handleImportFile">
+                                <button class="btn btn-primary" @click="$refs.importFileInput.click()"><i
+                                        class="fas fa-upload"></i> 导入日记</button>
+                            </div>
+                        </div>
+                        <div v-if="loading" class="loading">
+                            <i class="fas fa-spinner"></i>
+                            <p>加载中...</p>
+                        </div>
+                        <template v-else-if="diaries.length > 0">
+                            <div v-for="diary in diaries" :key="diary.id" class="diary-item" :data-id="diary.id">
+                                <div class="diary-header">
+                                    <h3>{$ diary.title $}</h3>
+                                    <div class="diary-actions">
+                                        <button class="btn btn-secondary" @click="editDiary(diary)">编辑</button>
+                                        <button class="btn btn-danger" @click="deleteDiary(diary.id)">删除</button>
+                                    </div>
+                                </div>
+                                <div class="diary-meta">
+                                    <i class="fas fa-clock"></i> {$ diary.created_at || new Date().toLocaleString() $}
+                                </div>
+                                <div class="diary-content">
+                                    {$ diary.content.substring(0, 100) $}{$ diary.content.length > 100 ? '...' : '' $}
+                                </div>
+                            </div>
+                        </template>
+                        <p v-else style="text-align: center; color: #7f8c8d; padding: 50px;">暂无日记，开始创建吧！</p>
                     </div>
-                    <div id="diary-items"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 登录提示弹窗 -->
+        <div v-if="showLoginModal" class="login-modal-overlay" @click.self="showLoginModal = false">
+            <div class="login-modal-box">
+                <div class="login-modal-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <div class="login-modal-title">请先登录</div>
+                <div class="login-modal-desc">您需要登录后才能访问该功能页面</div>
+                <div class="login-modal-buttons">
+                    <button class="login-modal-btn-cancel" @click="showLoginModal = false">取消</button>
+                    <button class="login-modal-btn-primary" @click="goToLogin">去登录</button>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
 
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script>
-        let currentDiaryId = null;
+        const { createApp, ref, onMounted } = Vue
 
-        // 页面加载时获取日记列表和登录状态
-        window.onload = function () {
-            checkLoginStatus();
-            fetchDiaries();
-        };
+        const app = createApp({
+            delimiters: ['{$', '$}'],
+            setup() {
+                const isLoggedIn = ref(false)
+                const userName = ref('')
+                const showLoginModal = ref(false)
+                const pendingUrl = ref('')
+                const loading = ref(false)
+                const currentDiaryId = ref(null)
+                const formTitle = ref('')
+                const formContent = ref('')
+                const diaries = ref([])
+                const importFileInput = ref(null)
 
-        // 检查用户登录状态
-        async function checkLoginStatus() {
-            try {
-                const response = await fetch('/api/user/status');
-                const data = await response.json();
-                const userLinks = document.getElementById('user-links');
-
-                if (data.logged_in) {
-                    userLinks.innerHTML = `
-                        <span style="margin-right: 15px; color: #3498db; font-weight: 500; display: inline-block; vertical-align: middle;">欢迎，${data.user_name}</span>
-                        <a href="/logout" style="display: inline-block; vertical-align: middle;"><i class="fas fa-sign-out-alt"></i> 退出</a>
-                    `;
-                } else {
-                    userLinks.innerHTML = `
-                        <a href="/login" style="display: inline-block; vertical-align: middle;"><i class="fas fa-sign-in-alt"></i> 登录</a>
-                        <a href="/register" style="margin-left: 10px; display: inline-block; vertical-align: middle;"><i class="fas fa-user-plus"></i> 注册</a>
-                    `;
-                }
-            } catch (error) {
-                console.error('检查登录状态失败:', error);
-            }
-        }
-
-        async function fetchDiaries() {
-            const loading = document.getElementById('loading');
-            const items = document.getElementById('diary-items');
-
-            loading.style.display = 'block';
-
-            try {
-                const response = await fetch('/api/diary');
-                const diaries = await response.json();
-
-                loading.style.display = 'none';
-
-                if (diaries.length > 0) {
-                    items.innerHTML = diaries.map(diary => `
-                        <div class="diary-item" data-id="${diary.id}">
-                            <div class="diary-header">
-                                <h3>${diary.title}</h3>
-                                <div class="diary-actions">
-                                    <button class="btn btn-secondary" onclick="editDiary(${diary.id})">编辑</button>
-                                    <button class="btn btn-danger" onclick="deleteDiary(${diary.id})">删除</button>
-                                </div>
-                            </div>
-                            <div class="diary-meta">
-                                <i class="fas fa-clock"></i> ${diary.created_at || new Date().toLocaleString()}
-                            </div>
-                            <div class="diary-content">
-                                ${diary.content.substring(0, 100)}${diary.content.length > 100 ? '...' : ''}
-                            </div>
-                        </div>
-                    `).join('');
-                } else {
-                    items.innerHTML = '<p style="text-align: center; color: #7f8c8d; padding: 50px;">暂无日记，开始创建吧！</p>';
-                }
-            } catch (error) {
-                console.error('获取日记列表失败:', error);
-                loading.style.display = 'none';
-                items.innerHTML = '<p style="text-align: center; color: #e74c3c; padding: 50px;">获取日记失败，请重试</p>';
-            }
-        }
-
-        async function saveDiary() {
-            const title = document.getElementById('diary-title').value;
-            const content = document.getElementById('diary-content').value;
-
-            if (!title || !content) {
-                alert('请填写标题和内容');
-                return;
-            }
-
-            try {
-                if (currentDiaryId) {
-                    // 更新日记
-                    await fetch('/api/diary', {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            id: currentDiaryId,
-                            title,
-                            content
-                        })
-                    });
-                } else {
-                    // 创建日记
-                    await fetch('/api/diary', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            title,
-                            content
-                        })
-                    });
-                }
-
-                clearForm();
-                fetchDiaries();
-            } catch (error) {
-                console.error('保存日记失败:', error);
-                alert('保存日记失败，请重试');
-            }
-        }
-
-        function editDiary(id) {
-            const diaryItem = document.querySelector(`.diary-item[data-id="${id}"]`);
-            if (diaryItem) {
-                const title = diaryItem.querySelector('h3').textContent;
-                const content = diaryItem.querySelector('.diary-content').textContent.replace('...', '');
-
-                document.getElementById('diary-id').value = id;
-                document.getElementById('diary-title').value = title;
-                document.getElementById('diary-content').value = content;
-
-                currentDiaryId = id;
-            }
-        }
-
-        async function deleteDiary(id) {
-            if (confirm('确定要删除这篇日记吗？')) {
-                try {
-                    await fetch(`/api/diary?id=${id}`, {
-                        method: 'DELETE'
-                    });
-                    fetchDiaries();
-                } catch (error) {
-                    console.error('删除日记失败:', error);
-                    alert('删除日记失败，请重试');
-                }
-            }
-        }
-
-        function clearForm() {
-            document.getElementById('diary-id').value = '';
-            document.getElementById('diary-title').value = '';
-            document.getElementById('diary-content').value = '';
-            currentDiaryId = null;
-        }
-
-        // 导出日记
-        async function exportDiary() {
-            try {
-                const response = await fetch('/api/diary/export');
-                const data = await response.json();
-
-                // 创建JSON文件并下载
-                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `diary_export_${new Date().toISOString().split('T')[0]}.json`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            } catch (error) {
-                console.error('导出日记失败:', error);
-                alert('导出日记失败，请重试');
-            }
-        }
-
-        // 导入日记
-        document.getElementById('import-file').addEventListener('change', async function (e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            try {
-                const reader = new FileReader();
-                reader.onload = async function (event) {
+                async function checkUserStatus() {
                     try {
-                        const data = JSON.parse(event.target.result);
-                        const response = await fetch('/api/diary/import', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(data)
-                        });
-                        const result = await response.json();
-
-                        if (result.success) {
-                            alert(`成功导入 ${result.imported} 篇日记`);
-                            fetchDiaries();
-                        } else {
-                            alert('导入失败: ' + (result.error || '未知错误'));
+                        const response = await fetch('/api/user/status')
+                        const data = await response.json()
+                        if (data.logged_in) {
+                            isLoggedIn.value = true
+                            userName.value = data.user_name
                         }
-                    } catch (error) {
-                        console.error('解析JSON文件失败:', error);
-                        alert('请选择有效的JSON文件');
+                    } catch (e) { }
+                }
+
+                async function handleLogout() {
+                    try {
+                        await fetch('/logout', { method: 'GET' })
+                        window.location.href = '/'
+                    } catch (e) {
+                        window.location.href = '/logout'
                     }
-                };
-                reader.readAsText(file);
-            } catch (error) {
-                console.error('导入日记失败:', error);
-                alert('导入日记失败，请重试');
+                }
+
+                async function checkLoginAndGo(event, url) {
+                    if (isLoggedIn.value) {
+                        window.location.href = url
+                        return
+                    }
+                    try {
+                        const response = await fetch('/api/user/status')
+                        const data = await response.json()
+                        if (data.logged_in) {
+                            isLoggedIn.value = true
+                            userName.value = data.user_name
+                            window.location.href = url
+                        } else {
+                            pendingUrl.value = url
+                            showLoginModal.value = true
+                        }
+                    } catch (e) {
+                        pendingUrl.value = url
+                        showLoginModal.value = true
+                    }
+                }
+
+                function goToLogin() {
+                    showLoginModal.value = false
+                    sessionStorage.setItem('redirectAfterLogin', pendingUrl.value)
+                    window.location.href = '/login'
+                }
+
+                async function fetchDiaries() {
+                    loading.value = true
+                    try {
+                        const response = await fetch('/api/diary')
+                        diaries.value = await response.json()
+                    } catch (e) {
+                        console.error('获取日记列表失败:', e)
+                    } finally {
+                        loading.value = false
+                    }
+                }
+
+                async function saveDiary() {
+                    if (!formTitle.value || !formContent.value) {
+                        alert('请填写标题和内容')
+                        return
+                    }
+                    try {
+                        if (currentDiaryId.value) {
+                            await fetch('/api/diary', {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ id: currentDiaryId.value, title: formTitle.value, content: formContent.value })
+                            })
+                        } else {
+                            await fetch('/api/diary', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ title: formTitle.value, content: formContent.value })
+                            })
+                        }
+                        clearForm()
+                        fetchDiaries()
+                    } catch (e) {
+                        console.error('保存日记失败:', e)
+                        alert('保存日记失败，请重试')
+                    }
+                }
+
+                function editDiary(diary) {
+                    currentDiaryId.value = diary.id
+                    formTitle.value = diary.title
+                    formContent.value = diary.content
+                }
+
+                async function deleteDiary(id) {
+                    if (!confirm('确定要删除这篇日记吗？')) return
+                    try {
+                        await fetch(`/api/diary?id=${id}`, { method: 'DELETE' })
+                        fetchDiaries()
+                    } catch (e) {
+                        console.error('删除日记失败:', e)
+                        alert('删除日记失败，请重试')
+                    }
+                }
+
+                function clearForm() {
+                    currentDiaryId.value = null
+                    formTitle.value = ''
+                    formContent.value = ''
+                }
+
+                async function exportDiary() {
+                    try {
+                        const response = await fetch('/api/diary/export')
+                        const data = await response.json()
+                        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+                        const url = URL.createObjectURL(blob)
+                        const a = document.createElement('a')
+                        a.href = url
+                        a.download = `diary_export_${new Date().toISOString().split('T')[0]}.json`
+                        document.body.appendChild(a)
+                        a.click()
+                        document.body.removeChild(a)
+                        URL.revokeObjectURL(url)
+                    } catch (e) {
+                        console.error('导出日记失败:', e)
+                        alert('导出日记失败，请重试')
+                    }
+                }
+
+                async function handleImportFile(event) {
+                    const file = event.target.files[0]
+                    if (!file) return
+                    try {
+                        const reader = new FileReader()
+                        reader.onload = async function (e) {
+                            try {
+                                const data = JSON.parse(e.target.result)
+                                const response = await fetch('/api/diary/import', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(data)
+                                })
+                                const result = await response.json()
+                                if (result.success) {
+                                    alert(`成功导入 ${result.imported} 篇日记`)
+                                    fetchDiaries()
+                                } else {
+                                    alert('导入失败: ' + (result.error || '未知错误'))
+                                }
+                            } catch (err) {
+                                console.error('解析JSON文件失败:', err)
+                                alert('请选择有效的JSON文件')
+                            }
+                        }
+                        reader.readAsText(file)
+                    } catch (e) {
+                        console.error('导入日记失败:', e)
+                        alert('导入日记失败，请重试')
+                    }
+                    event.target.value = ''
+                }
+
+                onMounted(() => {
+                    checkUserStatus()
+                    fetchDiaries()
+                })
+
+                return {
+                    isLoggedIn, userName, showLoginModal, loading, currentDiaryId, formTitle, formContent,
+                    diaries, importFileInput,
+                    checkUserStatus, handleLogout, checkLoginAndGo, goToLogin, fetchDiaries, saveDiary,
+                    editDiary, deleteDiary, clearForm, exportDiary, handleImportFile
+                }
             }
-        });
+        })
+
+        app.mount('#app')
     </script>
 </body>
 

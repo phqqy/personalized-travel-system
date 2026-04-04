@@ -24,20 +24,6 @@ def recommend():
     return render_template('recommend.html')
 
 
-@main_bp.route('/path')
-@login_required
-def path():
-    """路线规划页面"""
-    return render_template('path.html')
-
-
-@main_bp.route('/query')
-@login_required
-def query():
-    """场所查询页面"""
-    return render_template('query.html')
-
-
 @main_bp.route('/diary')
 @login_required
 def diary():
@@ -50,3 +36,21 @@ def diary():
 def map_page():
     """地图展示页面"""
     return render_template('map.html')
+
+
+@main_bp.route('/spots')
+def spots_page():
+    """景点大全页面"""
+    return render_template('spots.html')
+
+
+@main_bp.route('/universities')
+def universities_page():
+    """名校游览页面"""
+    return render_template('universities.html')
+
+
+@main_bp.route('/food')
+def food_page():
+    """特色美食页面"""
+    return render_template('food.html')

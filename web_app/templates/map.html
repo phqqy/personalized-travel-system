@@ -257,7 +257,6 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
             z-index: 999;
             min-width: 200px;
-            display: none;
         }
 
         .route-info-panel h4 {
@@ -282,112 +281,240 @@
             width: 16px;
             text-align: center;
         }
+
+        .login-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .login-modal-box {
+            background: white;
+            border-radius: 12px;
+            padding: 32px 40px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .login-modal-icon {
+            font-size: 48px;
+            color: #f39c12;
+            margin-bottom: 16px;
+        }
+
+        .login-modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .login-modal-desc {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 24px;
+        }
+
+        .login-modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .login-modal-btn-primary {
+            padding: 10px 28px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .login-modal-btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .login-modal-btn-cancel {
+            padding: 10px 28px;
+            background: #ecf0f1;
+            color: #7f8c8d;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .login-modal-btn-cancel:hover {
+            background: #dde4e6;
+        }
     </style>
 </head>
 
 <body>
-    <nav class="navbar">
-        <div class="container navbar-container">
-            <a href="/" class="logo">
-                <i class="fas fa-map-marked-alt"></i> 个性化旅游系统
-            </a>
-            <ul class="nav-links">
-                <li><a href="/" class="home-link"><i class="fas fa-home"></i> 首页</a></li>
-                <li><a href="/recommend"><i class="fas fa-star"></i> 旅游推荐</a></li>
-                <li><a href="/diary"><i class="fas fa-book"></i> 日记管理</a></li>
-                <li><a href="/map" class="active"><i class="fas fa-map"></i> 地图</a></li>
-                <li id="user-links" class="user-auth-links">
-                    <a href="/login"><i class="fas fa-sign-in-alt"></i> 登录</a>
-                    <a href="/register"><i class="fas fa-user-plus"></i> 注册</a>
-                </li>
-            </ul>
-        </div>
-    </nav>
-
-    <div class="map-container">
-        <div id="container"></div>
-
-        <div class="home-button" onclick="goHome()" title="返回初始位置">
-            <i class="fas fa-crosshairs"></i>
-        </div>
-
-        <div class="route-info-panel" id="route-info-panel">
-            <h4><i class="fas fa-route"></i> 路线信息</h4>
-            <div class="route-info-item">
-                <i class="fas fa-road"></i>
-                <span>距离: <span id="result-distance">0</span> 米</span>
+    <div id="app">
+        <nav class="navbar">
+            <div class="container navbar-container">
+                <a href="/" class="logo">
+                    <i class="fas fa-map-marked-alt"></i> 个性化旅游系统
+                </a>
+                <ul class="nav-links">
+                    <li><a href="/" class="home-link"><i class="fas fa-home"></i> 首页</a></li>
+                    <li><a href="/recommend" @click.prevent="checkLoginAndGo($event, '/recommend')"><i
+                                class="fas fa-star"></i> 旅游推荐</a></li>
+                    <li><a href="/diary" @click.prevent="checkLoginAndGo($event, '/diary')"><i class="fas fa-book"></i>
+                            日记管理</a></li>
+                    <li><a href="/map" class="active"><i class="fas fa-map"></i> 地图</a></li>
+                    <li v-if="!isLoggedIn" class="user-auth-links">
+                        <a href="/login"><i class="fas fa-sign-in-alt"></i> 登录</a>
+                        <a href="/register" style="margin-left: 10px;"><i class="fas fa-user-plus"></i> 注册</a>
+                    </li>
+                    <li v-else class="user-auth-links">
+                        <span
+                            style="margin-right: 15px; color: #3498db; font-weight: 500; display: inline-block; vertical-align: middle;">欢迎，{$
+                            userName $}</span>
+                        <a href="/logout" @click.prevent="handleLogout"
+                            style="display: inline-block; vertical-align: middle;"><i class="fas fa-sign-out-alt"></i>
+                            退出</a>
+                    </li>
+                </ul>
             </div>
-            <div class="route-info-item">
-                <i class="fas fa-clock"></i>
-                <span>时间: <span id="result-time">0</span> 分钟</span>
-            </div>
-            <div class="route-info-item">
-                <i class="fas fa-car"></i>
-                <span>交通: <span id="result-transport">驾车</span></span>
-            </div>
-        </div>
+        </nav>
 
-        <div class="right-sidebar" id="right-sidebar">
-            <div class="sidebar-toggle" onclick="toggleSidebar()">
-                <i class="fas fa-chevron-left" id="sidebar-toggle-icon"></i>
-            </div>
-            <div class="sidebar-content">
-                <h3><i class="fas fa-route"></i> 导航中心</h3>
+        <div class="map-container">
+            <div id="container"></div>
 
-                <div class="sidebar-section">
-                    <h4>起点设置</h4>
-                    <div class="input-group">
-                        <input type="text" id="start-input" placeholder="输入起点（如：五道口）" />
-                        <button onclick="setStartFromInput()" class="btn-primary">
-                            <i class="fas fa-search"></i>
+            <div class="home-button" @click="goHome" title="返回初始位置">
+                <i class="fas fa-crosshairs"></i>
+            </div>
+
+            <div class="route-info-panel" v-show="showRouteInfo">
+                <h4><i class="fas fa-route"></i> 路线信息</h4>
+                <div class="route-info-item">
+                    <i class="fas fa-road"></i>
+                    <span>距离: {$ routeDistance $} 米</span>
+                </div>
+                <div class="route-info-item">
+                    <i class="fas fa-clock"></i>
+                    <span>时间: {$ routeTime $} 分钟</span>
+                </div>
+                <div class="route-info-item">
+                    <i class="fas fa-car"></i>
+                    <span>交通: {$ routeTransport $}</span>
+                </div>
+            </div>
+
+            <div class="right-sidebar" :class="{ 'open': sidebarOpen }">
+                <div class="sidebar-toggle" @click="toggleSidebar">
+                    <i class="fas fa-chevron-left"></i>
+                </div>
+                <div class="sidebar-content">
+                    <h3><i class="fas fa-route"></i> 导航中心</h3>
+
+                    <div class="sidebar-section">
+                        <h4>起点设置</h4>
+                        <div class="input-group">
+                            <input type="text" v-model="startInput" placeholder="输入起点（如：五道口）"
+                                @keyup.enter="setStartFromInput" />
+                            <button @click="setStartFromInput" class="btn-primary">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="location-info">{$ startInfo $}</div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h4>终点设置</h4>
+                        <div class="input-group">
+                            <input type="text" v-model="endInput" placeholder="输入终点（如：中关村）"
+                                @keyup.enter="setEndFromInput" />
+                            <button @click="setEndFromInput" class="btn-primary">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="location-info">{$ endInfo $}</div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h4>交通方式</h4>
+                        <div class="transport-options">
+                            <label class="transport-option">
+                                <input type="radio" name="transport" value="driving" v-model="transportMode" />
+                                <i class="fas fa-car"></i>
+                                <span>驾车</span>
+                            </label>
+                            <label class="transport-option">
+                                <input type="radio" name="transport" value="walking" v-model="transportMode" />
+                                <i class="fas fa-walking"></i>
+                                <span>步行</span>
+                            </label>
+                            <label class="transport-option">
+                                <input type="radio" name="transport" value="bicycling" v-model="transportMode" />
+                                <i class="fas fa-bicycle"></i>
+                                <span>骑行</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-actions">
+                        <button @click="startNavigation" class="btn-primary full-width">
+                            <i class="fas fa-map-signs"></i> 开始导航
+                        </button>
+                        <button @click="clearRoute" class="btn-secondary full-width">
+                            <i class="fas fa-eraser"></i> 清除路线
                         </button>
                     </div>
-                    <div id="start-info" class="location-info">
-                        未设置
-                    </div>
                 </div>
+            </div>
 
-                <div class="sidebar-section">
-                    <h4>终点设置</h4>
-                    <div class="input-group">
-                        <input type="text" id="end-input" placeholder="输入终点（如：中关村）" />
-                        <button onclick="setEndFromInput()" class="btn-primary">
-                            <i class="fas fa-search"></i>
-                        </button>
+            <!-- 登录提示弹窗 -->
+            <div v-if="showLoginModal" class="login-modal-overlay" @click.self="showLoginModal = false">
+                <div class="login-modal-box">
+                    <div class="login-modal-icon">
+                        <i class="fas fa-lock"></i>
                     </div>
-                    <div id="end-info" class="location-info">
-                        未设置
+                    <div class="login-modal-title">请先登录</div>
+                    <div class="login-modal-desc">您需要登录后才能访问该功能页面</div>
+                    <div class="login-modal-buttons">
+                        <button class="login-modal-btn-cancel" @click="showLoginModal = false">取消</button>
+                        <button class="login-modal-btn-primary" @click="goToLogin">去登录</button>
                     </div>
-                </div>
-
-                <div class="sidebar-section">
-                    <h4>交通方式</h4>
-                    <div class="transport-options">
-                        <label class="transport-option">
-                            <input type="radio" name="transport" value="driving" checked />
-                            <i class="fas fa-car"></i>
-                            <span>驾车</span>
-                        </label>
-                        <label class="transport-option">
-                            <input type="radio" name="transport" value="walking" />
-                            <i class="fas fa-walking"></i>
-                            <span>步行</span>
-                        </label>
-                        <label class="transport-option">
-                            <input type="radio" name="transport" value="bicycling" />
-                            <i class="fas fa-bicycle"></i>
-                            <span>骑行</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="sidebar-actions">
-                    <button onclick="startNavigation()" class="btn-primary full-width">
-                        <i class="fas fa-map-signs"></i> 开始导航
-                    </button>
-                    <button onclick="clearRoute()" class="btn-secondary full-width">
-                        <i class="fas fa-eraser"></i> 清除路线
-                    </button>
                 </div>
             </div>
         </div>
@@ -400,394 +527,323 @@
     </script>
     <script type="text/javascript"
         src="https://webapi.amap.com/maps?v=2.0&key=1d5753eadd7aa612016c702852090aea&plugin=AMap.Geocoder,AMap.PlaceSearch,AMap.Driving,AMap.Walking,AMap.Riding"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script>
-        let map;
-        let placeSearch;
-        let currentRoutePlugin = null;
-        let searchMarkers = [];
-        let currentSettingType = null;
-        window.startPoint = null;
-        window.endPoint = null;
+        const { createApp, ref, onMounted } = Vue
 
-        const center = [116.397, 39.909]; // 北京中心点
+        const app = createApp({
+            delimiters: ['{$', '$}'],
+            setup() {
+                const isLoggedIn = ref(false)
+                const userName = ref('')
+                const showLoginModal = ref(false)
+                const pendingUrl = ref('')
+                const sidebarOpen = ref(false)
+                const startInput = ref('')
+                const endInput = ref('')
+                const startInfo = ref('未设置')
+                const endInfo = ref('未设置')
+                const transportMode = ref('driving')
+                const showRouteInfo = ref(false)
+                const routeDistance = ref('0')
+                const routeTime = ref('0')
+                const routeTransport = ref('驾车')
 
-        async function checkLoginStatus() {
-            try {
-                const response = await fetch('/api/user/status');
-                const data = await response.json();
-                const userLinks = document.getElementById('user-links');
+                let map = null
+                let placeSearch = null
+                let geocoder = null
+                let currentRoutePlugin = null
+                let searchMarkers = []
+                let startPoint = null
+                let endPoint = null
+                let currentCity = '全国'
+                const center = [116.397, 39.909]
 
-                if (data.logged_in) {
-                    userLinks.innerHTML = `
-                        <span style="margin-right: 15px; color: #3498db; font-weight: 500; display: inline-block; vertical-align: middle;">欢迎，${data.user_name}</span>
-                        <a href="/logout" style="display: inline-block; vertical-align: middle;"><i class="fas fa-sign-out-alt"></i> 退出</a>
-                    `;
-                } else {
-                    userLinks.innerHTML = `
-                        <a href="/login" style="display: inline-block; vertical-align: middle;"><i class="fas fa-sign-in-alt"></i> 登录</a>
-                        <a href="/register" style="margin-left: 10px; display: inline-block; vertical-align: middle;"><i class="fas fa-user-plus"></i> 注册</a>
-                    `;
+                async function checkUserStatus() {
+                    try {
+                        const response = await fetch('/api/user/status')
+                        const data = await response.json()
+                        if (data.logged_in) {
+                            isLoggedIn.value = true
+                            userName.value = data.user_name
+                        }
+                    } catch (e) { }
                 }
-            } catch (error) {
-                console.error('检查登录状态失败:', error);
-            }
-        }
 
-        window.onload = function () {
-            console.log('页面加载完成');
-            checkLoginStatus();
-            initMap();
-
-            const urlParams = new URLSearchParams(window.location.search);
-            const spotName = urlParams.get('spot');
-            if (spotName) {
-                console.log('从URL获取到景点名称:', spotName);
-                setTimeout(() => {
-                    autoLocateSpot(spotName);
-                }, 1000);
-            }
-        };
-
-        function autoLocateSpot(spotName) {
-            console.log('开始自动定位:', spotName);
-
-            const tempSearch = new AMap.PlaceSearch({
-                pageSize: 10,
-                city: '全国',
-                extensions: 'all'
-            });
-
-            tempSearch.search(spotName, function (status, result) {
-                console.log('自动定位搜索回调:', status, result);
-
-                if (status === 'complete' && result.poiList && result.poiList.pois.length > 0) {
-                    const poi = result.poiList.pois[0];
-                    console.log('找到目标POI:', poi);
-
-                    window.startPoint = {
-                        name: poi.name,
-                        lng: poi.location.lng,
-                        lat: poi.location.lat
-                    };
-
-                    document.getElementById('start-info').innerHTML = poi.name;
-                    document.getElementById('start-input').value = poi.name;
-                    map.setZoomAndCenter(16, [poi.location.lng, poi.location.lat]);
-
-                    updateSearchCity(poi.location.lng, poi.location.lat);
-                    updateCurrentCenter(poi.location.lng, poi.location.lat);
-                    console.log('自动设置起点成功:', window.startPoint);
-                } else {
-                    console.log('未找到该地点');
-                }
-            });
-        }
-
-        let geocoder;
-        let currentCity = '全国';
-
-        function initMap() {
-            console.log('开始初始化地图');
-            map = new AMap.Map('container', {
-                zoom: 15,
-                center: center,
-                viewMode: '2D'
-            });
-
-            map.on('complete', function () {
-                console.log('地图加载完成');
-            });
-
-            placeSearch = new AMap.PlaceSearch({
-                map: null,
-                pageSize: 10,
-                city: currentCity,
-                extensions: 'all'
-            });
-
-            AMap.plugin('AMap.Geocoder', function () {
-                geocoder = new AMap.Geocoder();
-            });
-
-            console.log('placeSearch初始化完成');
-        }
-
-        function updateSearchCity(lng, lat) {
-            console.log('更新搜索城市, 坐标:', lng, lat);
-            if (geocoder) {
-                geocoder.getAddress([lng, lat], function (status, result) {
-                    if (status === 'complete' && result.regeocode) {
-                        const addressComponent = result.regeocode.addressComponent;
-                        currentCity = addressComponent.city || addressComponent.province || '全国';
-                        console.log('当前城市:', currentCity);
-
-                        placeSearch.setCity(currentCity);
+                async function handleLogout() {
+                    try {
+                        await fetch('/logout', { method: 'GET' })
+                        window.location.href = '/'
+                    } catch (e) {
+                        window.location.href = '/logout'
                     }
-                });
-            }
-        }
+                }
 
-        function toggleSidebar() {
-            console.log('toggleSidebar被调用');
-            const sidebar = document.getElementById('right-sidebar');
-            sidebar.classList.toggle('open');
-        }
+                async function checkLoginAndGo(event, url) {
+                    if (isLoggedIn.value) {
+                        window.location.href = url
+                        return
+                    }
+                    try {
+                        const response = await fetch('/api/user/status')
+                        const data = await response.json()
+                        if (data.logged_in) {
+                            isLoggedIn.value = true
+                            userName.value = data.user_name
+                            window.location.href = url
+                        } else {
+                            pendingUrl.value = url
+                            showLoginModal.value = true
+                        }
+                    } catch (e) {
+                        pendingUrl.value = url
+                        showLoginModal.value = true
+                    }
+                }
 
-        let currentMapCenter = center;
+                function goToLogin() {
+                    showLoginModal.value = false
+                    sessionStorage.setItem('redirectAfterLogin', pendingUrl.value)
+                    window.location.href = '/login'
+                }
 
-        function goHome() {
-            console.log('goHome被调用');
-            let targetCenter = center;
+                function toggleSidebar() {
+                    sidebarOpen.value = !sidebarOpen.value
+                }
 
-            if (window.startPoint) {
-                targetCenter = [window.startPoint.lng, window.startPoint.lat];
-                console.log('返回起点位置:', window.startPoint.name);
-            } else {
-                targetCenter = map.getCenter().toArray();
-                console.log('返回当前地图中心');
-            }
+                function updateSearchCity(lng, lat) {
+                    if (geocoder) {
+                        geocoder.getAddress([lng, lat], function (status, result) {
+                            if (status === 'complete' && result.regeocode) {
+                                const addressComponent = result.regeocode.addressComponent
+                                currentCity = addressComponent.city || addressComponent.province || '全国'
+                                placeSearch.setCity(currentCity)
+                            }
+                        })
+                    }
+                }
 
-            map.setZoomAndCenter(15, targetCenter);
-        }
+                function goHome() {
+                    let targetCenter = center
+                    if (startPoint) {
+                        targetCenter = [startPoint.lng, startPoint.lat]
+                    } else {
+                        targetCenter = map.getCenter().toArray()
+                    }
+                    map.setZoomAndCenter(15, targetCenter)
+                }
 
-        function updateCurrentCenter(lng, lat) {
-            currentMapCenter = [lng, lat];
-        }
+                function clearSearchMarkers() {
+                    for (const marker of searchMarkers) {
+                        map.remove(marker)
+                    }
+                    searchMarkers = []
+                }
 
-        function calculateDistance(lng1, lat1, lng2, lat2) {
-            const R = 6371000;
-            const φ1 = lat1 * Math.PI / 180;
-            const φ2 = lat2 * Math.PI / 180;
-            const Δφ = (lat2 - lat1) * Math.PI / 180;
-            const Δλ = (lng2 - lng1) * Math.PI / 180;
-            const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-                Math.cos(φ1) * Math.cos(φ2) *
-                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            return R * c;
-        }
+                function showSearchMarkers(pois, settingType) {
+                    clearSearchMarkers()
 
-        function clearSearchMarkers() {
-            for (const marker of searchMarkers) {
-                map.remove(marker);
-            }
-            searchMarkers = [];
-        }
+                    for (let i = 0; i < pois.length; i++) {
+                        const poi = pois[i]
+                        const marker = new AMap.Marker({
+                            position: [poi.location.lng, poi.location.lat],
+                            title: poi.name,
+                            map: map
+                        })
 
-        function showSearchMarkers(pois, settingType) {
-            clearSearchMarkers();
-
-            for (let i = 0; i < pois.length; i++) {
-                const poi = pois[i];
-                const marker = new AMap.Marker({
-                    position: [poi.location.lng, poi.location.lat],
-                    title: poi.name,
-                    map: map
-                });
-
-                marker.on('click', function () {
-                    console.log('点击了标记:', poi);
-
-                    if (settingType === 'start') {
-                        window.startPoint = {
-                            name: poi.name,
-                            lng: poi.location.lng,
-                            lat: poi.location.lat
-                        };
-                        document.getElementById('start-info').innerHTML = poi.name;
-                        updateSearchCity(poi.location.lng, poi.location.lat);
-                        updateCurrentCenter(poi.location.lng, poi.location.lat);
-                        console.log('设置起点成功:', window.startPoint);
-                    } else if (settingType === 'end') {
-                        window.endPoint = {
-                            name: poi.name,
-                            lng: poi.location.lng,
-                            lat: poi.location.lat
-                        };
-                        document.getElementById('end-info').innerHTML = poi.name;
-                        console.log('设置终点成功:', window.endPoint);
+                        marker.on('click', function () {
+                            if (settingType === 'start') {
+                                startPoint = { name: poi.name, lng: poi.location.lng, lat: poi.location.lat }
+                                startInfo.value = poi.name
+                                updateSearchCity(poi.location.lng, poi.location.lat)
+                            } else if (settingType === 'end') {
+                                endPoint = { name: poi.name, lng: poi.location.lng, lat: poi.location.lat }
+                                endInfo.value = poi.name
+                            }
+                            map.setZoomAndCenter(16, [poi.location.lng, poi.location.lat])
+                            clearSearchMarkers()
+                        })
+                        searchMarkers.push(marker)
                     }
 
-                    map.setZoomAndCenter(16, [poi.location.lng, poi.location.lat]);
-                    clearSearchMarkers();
-                });
-
-                searchMarkers.push(marker);
-            }
-
-            if (pois.length > 0) {
-                map.setZoomAndCenter(15, [pois[0].location.lng, pois[0].location.lat]);
-            }
-        }
-
-        function setStartFromInput() {
-            console.log('setStartFromInput被调用');
-            const input = document.getElementById('start-input');
-            const keyword = input.value;
-            console.log('搜索起点关键词:', keyword);
-
-            if (!keyword) {
-                alert('请输入起点关键词');
-                return;
-            }
-
-            document.getElementById('start-info').innerHTML = '正在搜索，请点击地图上的标记选择...';
-
-            placeSearch.search(keyword, function (status, result) {
-                console.log('起点搜索回调:', status, result);
-
-                if (status === 'complete' && result.poiList && result.poiList.pois.length > 0) {
-                    const pois = result.poiList.pois;
-                    console.log('搜索到的POI数量:', pois.length);
-
-                    showSearchMarkers(pois, 'start');
-                    console.log('显示起点搜索标记，共', pois.length, '个');
-                } else {
-                    document.getElementById('start-info').innerHTML = '未找到地点';
-                    alert('未找到该地点，请尝试其他关键词');
+                    if (pois.length > 0) {
+                        map.setZoomAndCenter(15, [pois[0].location.lng, pois[0].location.lat])
+                    }
                 }
-            });
-        }
 
-        function setEndFromInput() {
-            console.log('setEndFromInput被调用');
-            const input = document.getElementById('end-input');
-            const keyword = input.value;
-            console.log('搜索终点关键词:', keyword);
-
-            if (!keyword) {
-                alert('请输入终点关键词');
-                return;
-            }
-
-            document.getElementById('end-info').innerHTML = '正在搜索，请点击地图上的标记选择...';
-
-            placeSearch.search(keyword, function (status, result) {
-                console.log('终点搜索回调:', status, result);
-
-                if (status === 'complete' && result.poiList && result.poiList.pois.length > 0) {
-                    const pois = result.poiList.pois;
-                    console.log('搜索到的POI数量:', pois.length);
-
-                    showSearchMarkers(pois, 'end');
-                    console.log('显示终点搜索标记，共', pois.length, '个');
-                } else {
-                    document.getElementById('end-info').innerHTML = '未找到地点';
-                    alert('未找到该地点，请尝试其他关键词');
+                function setStartFromInput() {
+                    const keyword = startInput.value.trim()
+                    if (!keyword) {
+                        alert('请输入起点关键词')
+                        return
+                    }
+                    startInfo.value = '正在搜索，请点击地图上的标记选择...'
+                    placeSearch.search(keyword, function (status, result) {
+                        if (status === 'complete' && result.poiList && result.poiList.pois.length > 0) {
+                            showSearchMarkers(result.poiList.pois, 'start')
+                        } else {
+                            startInfo.value = '未找到地点'
+                            alert('未找到该地点，请尝试其他关键词')
+                        }
+                    })
                 }
-            });
-        }
 
-        function startNavigation() {
-            console.log('startNavigation被调用');
-            console.log('当前起点:', window.startPoint);
-            console.log('当前终点:', window.endPoint);
-
-            if (!window.startPoint) {
-                alert('请先设置起点！');
-                return;
-            }
-            if (!window.endPoint) {
-                alert('请先设置终点！');
-                return;
-            }
-
-            const transport = document.querySelector('input[name="transport"]:checked').value;
-            console.log('选择的交通方式:', transport);
-
-            if (currentRoutePlugin) {
-                currentRoutePlugin.clear();
-            }
-
-            if (transport === 'driving') {
-                AMap.plugin('AMap.Driving', function () {
-                    currentRoutePlugin = new AMap.Driving({
-                        map: map,
-                        panel: null
-                    });
-                    currentRoutePlugin.search(
-                        new AMap.LngLat(window.startPoint.lng, window.startPoint.lat),
-                        new AMap.LngLat(window.endPoint.lng, window.endPoint.lat),
-                        handleRouteResult
-                    );
-                });
-            } else if (transport === 'walking') {
-                AMap.plugin('AMap.Walking', function () {
-                    currentRoutePlugin = new AMap.Walking({
-                        map: map
-                    });
-                    currentRoutePlugin.search(
-                        new AMap.LngLat(window.startPoint.lng, window.startPoint.lat),
-                        new AMap.LngLat(window.endPoint.lng, window.endPoint.lat),
-                        handleRouteResult
-                    );
-                });
-            } else if (transport === 'bicycling') {
-                AMap.plugin('AMap.Riding', function () {
-                    currentRoutePlugin = new AMap.Riding({
-                        map: map
-                    });
-                    currentRoutePlugin.search(
-                        new AMap.LngLat(window.startPoint.lng, window.startPoint.lat),
-                        new AMap.LngLat(window.endPoint.lng, window.endPoint.lat),
-                        handleRouteResult
-                    );
-                });
-            }
-        }
-
-        function handleRouteResult(status, result) {
-            console.log('handleRouteResult被调用:', status, result);
-            if (status === 'complete') {
-                const route = result.routes[0];
-                console.log('路线信息:', route);
-
-                const distance = Math.round(route.distance);
-                const time = Math.round(route.time / 60);
-
-                document.getElementById('result-distance').textContent = distance;
-                document.getElementById('result-time').textContent = time;
-                document.getElementById('result-transport').textContent = getTransportName();
-                document.getElementById('route-info-panel').style.display = 'block';
-
-                console.log('显示路线信息 - 距离:', distance, '米, 时间:', time, '分钟');
-
-                map.setFitView();
-            } else {
-                alert('规划路线失败：' + result);
-            }
-        }
-
-        function getTransportName() {
-            const transport = document.querySelector('input[name="transport"]:checked').value;
-            if (transport === 'driving') return '驾车';
-            if (transport === 'walking') return '步行';
-            if (transport === 'bicycling') return '骑行';
-            return '驾车';
-        }
-
-        function clearRoute() {
-            console.log('clearRoute被调用');
-
-            clearSearchMarkers();
-
-            if (currentRoutePlugin) {
-                try {
-                    currentRoutePlugin.clear();
-                    console.log('已清除路线规划插件');
-                } catch (e) {
-                    console.log('清除路线规划插件时出错:', e);
+                function setEndFromInput() {
+                    const keyword = endInput.value.trim()
+                    if (!keyword) {
+                        alert('请输入终点关键词')
+                        return
+                    }
+                    endInfo.value = '正在搜索，请点击地图上的标记选择...'
+                    placeSearch.search(keyword, function (status, result) {
+                        if (status === 'complete' && result.poiList && result.poiList.pois.length > 0) {
+                            showSearchMarkers(result.poiList.pois, 'end')
+                        } else {
+                            endInfo.value = '未找到地点'
+                            alert('未找到该地点，请尝试其他关键词')
+                        }
+                    })
                 }
-                currentRoutePlugin = null;
+
+                function getTransportName() {
+                    if (transportMode.value === 'driving') return '驾车'
+                    if (transportMode.value === 'walking') return '步行'
+                    if (transportMode.value === 'bicycling') return '骑行'
+                    return '驾车'
+                }
+
+                function handleRouteResult(status, result) {
+                    if (status === 'complete') {
+                        const route = result.routes[0]
+                        const distance = Math.round(route.distance)
+                        const time = Math.round(route.time / 60)
+                        routeDistance.value = distance
+                        routeTime.value = time
+                        routeTransport.value = getTransportName()
+                        showRouteInfo.value = true
+                        map.setFitView()
+                    } else {
+                        alert('规划路线失败：' + result)
+                    }
+                }
+
+                function startNavigation() {
+                    if (!startPoint) {
+                        alert('请先设置起点！')
+                        return
+                    }
+                    if (!endPoint) {
+                        alert('请先设置终点！')
+                        return
+                    }
+
+                    const transport = transportMode.value
+
+                    if (currentRoutePlugin) {
+                        currentRoutePlugin.clear()
+                    }
+
+                    if (transport === 'driving') {
+                        AMap.plugin('AMap.Driving', function () {
+                            currentRoutePlugin = new AMap.Driving({ map: map, panel: null })
+                            currentRoutePlugin.search(
+                                new AMap.LngLat(startPoint.lng, startPoint.lat),
+                                new AMap.LngLat(endPoint.lng, endPoint.lat),
+                                handleRouteResult
+                            )
+                        })
+                    } else if (transport === 'walking') {
+                        AMap.plugin('AMap.Walking', function () {
+                            currentRoutePlugin = new AMap.Walking({ map: map })
+                            currentRoutePlugin.search(
+                                new AMap.LngLat(startPoint.lng, startPoint.lat),
+                                new AMap.LngLat(endPoint.lng, endPoint.lat),
+                                handleRouteResult
+                            )
+                        })
+                    } else if (transport === 'bicycling') {
+                        AMap.plugin('AMap.Riding', function () {
+                            currentRoutePlugin = new AMap.Riding({ map: map })
+                            currentRoutePlugin.search(
+                                new AMap.LngLat(startPoint.lng, startPoint.lat),
+                                new AMap.LngLat(endPoint.lng, endPoint.lat),
+                                handleRouteResult
+                            )
+                        })
+                    }
+                }
+
+                function clearRoute() {
+                    clearSearchMarkers()
+                    if (currentRoutePlugin) {
+                        try { currentRoutePlugin.clear() } catch (e) { }
+                        currentRoutePlugin = null
+                    }
+                    map.clearMap()
+                    showRouteInfo.value = false
+                }
+
+                function autoLocateSpot(spotName) {
+                    const tempSearch = new AMap.PlaceSearch({
+                        pageSize: 10,
+                        city: '全国',
+                        extensions: 'all'
+                    })
+                    tempSearch.search(spotName, function (status, result) {
+                        if (status === 'complete' && result.poiList && result.poiList.pois.length > 0) {
+                            const poi = result.poiList.pois[0]
+                            startPoint = { name: poi.name, lng: poi.location.lng, lat: poi.location.lat }
+                            startInfo.value = poi.name
+                            startInput.value = poi.name
+                            map.setZoomAndCenter(16, [poi.location.lng, poi.location.lat])
+                            updateSearchCity(poi.location.lng, poi.location.lat)
+                        }
+                    })
+                }
+
+                function initMap() {
+                    map = new AMap.Map('container', {
+                        zoom: 15,
+                        center: center,
+                        viewMode: '2D'
+                    })
+
+                    placeSearch = new AMap.PlaceSearch({
+                        map: null,
+                        pageSize: 10,
+                        city: currentCity,
+                        extensions: 'all'
+                    })
+
+                    AMap.plugin('AMap.Geocoder', function () {
+                        geocoder = new AMap.Geocoder()
+                    })
+                }
+
+                onMounted(() => {
+                    checkUserStatus()
+                    initMap()
+
+                    const urlParams = new URLSearchParams(window.location.search)
+                    const spotName = urlParams.get('spot')
+                    if (spotName) {
+                        setTimeout(() => {
+                            autoLocateSpot(spotName)
+                        }, 1000)
+                    }
+                })
+
+                return {
+                    isLoggedIn, userName, showLoginModal, sidebarOpen, startInput, endInput,
+                    startInfo, endInfo, transportMode, showRouteInfo,
+                    routeDistance, routeTime, routeTransport,
+                    toggleSidebar, goHome, setStartFromInput, setEndFromInput,
+                    startNavigation, clearRoute, handleLogout, checkLoginAndGo, goToLogin
+                }
             }
+        })
 
-            // 只清除路线和标记，不改变地图中心位置
-            map.clearMap();
-
-            // 不清除起点终点信息，只清除路线显示
-            document.getElementById('route-info-panel').style.display = 'none';
-            console.log('清除路线完成');
-        }
+        app.mount('#app')
     </script>
 </body>
 
