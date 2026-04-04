@@ -22,7 +22,6 @@
             flex-direction: column;
         }
 
-        /* 导航栏 */
         .navbar {
             background: rgb(255, 255, 255);
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -69,7 +68,6 @@
             color: #3498db;
         }
 
-        /* 主容器 */
         .container {
             flex: 1;
             display: flex;
@@ -94,7 +92,6 @@
             position: relative;
         }
 
-        /* 表单面板 - 左侧（默认登录） */
         .form-panel {
             position: absolute;
             top: 0;
@@ -116,7 +113,6 @@
             transform: translateX(100%);
         }
 
-        /* 注册模式下，表单面板对向移动 */
         .auth-container.register-mode .form-panel.login {
             transform: translateX(-100%);
         }
@@ -179,14 +175,19 @@
         .btn-green:hover {
             background: #16a085;
         }
-        /* 测试账号信息 */
+
+        .btn-green:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         .test-account-info {
             background-color: #e8f4f8;
             border-left: 4px solid #3498db;
             padding: 15px;
             margin-bottom: 15px;
             border-radius: 4px;
-            width:100%;
+            width: 100%;
             max-width: 240px;
             font-size: 13px;
         }
@@ -226,7 +227,6 @@
             font-size: 14px;
         }
 
-        /* 绿色面板 - 右侧（默认显示注册相关） */
         .green-panel {
             position: absolute;
             top: 0;
@@ -242,14 +242,10 @@
             padding: 40px;
             transition: transform 0.6s ease;
             z-index: 10;
-        }
-
-        .green-panel {
             right: 0;
             transform: translateX(0);
         }
 
-        /* 注册模式下，绿色面板移动到左侧 */
         .auth-container.register-mode .green-panel {
             transform: translateX(-185.7%);
         }
@@ -300,7 +296,6 @@
             border: 2px solid white;
         }
 
-        /* 响应式设计 */
         @media (max-width: 768px) {
             .auth-container {
                 height: auto;
@@ -349,132 +344,255 @@
 </head>
 
 <body>
-    <!-- 导航栏 -->
-    <nav class="navbar">
-        <div class="navbar-container">
-            <a href="/" class="logo">
-                <i class="fas fa-map-marked-alt"></i> 个性化旅游系统
-            </a>
-            <ul class="nav-links">
-                <li><a href="/" class="home-link"><i class="fas fa-home"></i> 首页</a></li>
-                <li><a href="/recommend"><i class="fas fa-star"></i> 旅游推荐</a></li>
-                <li><a href="/diary"><i class="fas fa-book"></i> 日记管理</a></li>
-                <li id="user-links" class="user-auth-links">
-                    <a href="/login"><i class="fas fa-sign-in-alt"></i> 登录/注册</a>
-                </li>
-            </ul>
-        </div>
-    </nav>
+    <div id="app">
+        <nav class="navbar">
+            <div class="navbar-container">
+                <a href="/" class="logo">
+                    <i class="fas fa-map-marked-alt"></i> 个性化旅游系统
+                </a>
+                <ul class="nav-links">
+                    <li><a href="/"><i class="fas fa-home"></i> 首页</a></li>
+                    <li><a href="/recommend"><i class="fas fa-star"></i> 旅游推荐</a></li>
+                    <li><a href="/diary"><i class="fas fa-book"></i> 日记管理</a></li>
+                    <li v-if="!isLoggedIn" id="user-links" class="user-auth-links">
+                        <a href="/login"><i class="fas fa-sign-in-alt"></i> 登录/注册</a>
+                    </li>
+                    <li v-else id="user-links" class="user-auth-links">
+                        <span style="color:#555;font-weight:500;"><i class="fas fa-user"></i> {$ userName $}</span>
+                        <a href="/logout" @click.prevent="handleLogout"><i class="fas fa-sign-out-alt"></i> 退出</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
 
-    <div class="container">
-        <div class="auth-wrapper">
-            <div class="auth-container" id="authContainer">
-                <!-- 登录表单 - 左侧（默认） -->
-                <div class="form-panel login">
-                    <div class="form-box login">
-                        <h2>账户登录</h2>
+        <div class="container">
+            <div class="auth-wrapper">
+                <div class="auth-container" :class="{ 'register-mode': isRegisterMode }">
+                    <div class="form-panel login">
+                        <div class="form-box login">
+                            <h2>账户登录</h2>
 
-                        {% if error and request.endpoint == 'auth.login' %}
-                        <div class="error-message">{{ error }}</div>
-                        {% endif %}
+                            <div v-if="loginError" class="error-message">{$ loginError $}</div>
+                            <div v-if="loginSuccess" class="success-message">{$ loginSuccess $}</div>
 
-                        {% if success and request.endpoint == 'auth.login' %}
-                        <div class="success-message">{{ success }}</div>
-                        {% endif %}
-
-                        <form action="/login" method="POST">
-                            <div class="form-group">
-                                <input type="text" name="username" placeholder="用户名" required>
+                            <form @submit.prevent="handleLogin">
+                                <div class="form-group">
+                                    <input type="text" v-model="loginForm.username" placeholder="用户名" required
+                                        :disabled="loading">
+                                </div>
+                                <div class="form-group">
+                                    <input type="password" v-model="loginForm.password" placeholder="密码" required
+                                        :disabled="loading">
+                                </div>
+                                <button type="submit" class="btn-green" :disabled="loading">{$ loading ? '登录中...' : '登录'
+                                    $}</button>
+                            </form>
+                            <br>
+                            <div class="test-account-info">
+                                <p>
+                                    <i class="fas fa-info-circle" style="color: #3498db; margin-right: 5px;"></i>
+                                    <strong>测试账号：</strong>用户名: <code>test</code> 密码: <code>123456</code>
+                                </p>
                             </div>
-                            <div class="form-group">
-                                <input type="password" name="password" placeholder="密码" required>
-                            </div>
-                            <button type="submit" class="btn-green">登录</button>
-                        </form>
-                        <br></br>
-                        <div class="test-account-info">
-                            <p>
-                                <i class="fas fa-info-circle" style="color: #3498db; margin-right: 5px;"></i>
-                                <strong>测试账号：</strong>用户名: <code>test</code> 密码: <code>123456</code>
-                            </p>
                         </div>
                     </div>
-                </div>
 
-                <!-- 注册表单 - 右侧 -->
-                <div class="form-panel register">
-                    <div class="form-box register">
-                        <h2>创建账户</h2>
+                    <div class="form-panel register">
+                        <div class="form-box register">
+                            <h2>创建账户</h2>
 
-                        {% if error and request.endpoint == 'auth.register' %}
-                        <div class="error-message">{{ error }}</div>
-                        {% endif %}
+                            <div v-if="registerError" class="error-message">{$ registerError $}</div>
+                            <div v-if="registerSuccess" class="success-message">{$ registerSuccess $}</div>
 
-                        {% if success and request.endpoint == 'auth.register' %}
-                        <div class="success-message">{{ success }}</div>
-                        {% endif %}
-
-                        <form action="/register" method="POST">
-                            <div class="form-group">
-                                <input type="text" name="username" placeholder="用户名" required>
-                            </div>
-                            <div class="form-group">
-                                <input type="password" name="password" placeholder="密码" required>
-                            </div>
-                            <div class="form-group">
-                                <input type="password" name="confirm_password" placeholder="确认密码" required>
-                            </div>
-                            <button type="submit" class="btn-green">注册</button>
-                        </form>
+                            <form @submit.prevent="handleRegister">
+                                <div class="form-group">
+                                    <input type="text" v-model="registerForm.username" placeholder="用户名" required
+                                        :disabled="loading">
+                                </div>
+                                <div class="form-group">
+                                    <input type="password" v-model="registerForm.password" placeholder="密码" required
+                                        :disabled="loading">
+                                </div>
+                                <div class="form-group">
+                                    <input type="password" v-model="registerForm.confirmPassword" placeholder="确认密码"
+                                        required :disabled="loading">
+                                </div>
+                                <button type="submit" class="btn-green" :disabled="loading">{$ loading ? '注册中...' : '注册'
+                                    $}</button>
+                            </form>
+                        </div>
                     </div>
-                </div>
 
-                <!-- 绿色面板 - 右侧（默认显示注册相关） -->
-                <div class="green-panel">
-                    <div class="login-content">
-                        <h2>你好，朋友！</h2>
-                        <p>还没有账号？立即注册加入我们</p>
-                        <button class="btn-white" id="showRegister">注册</button>
-                    </div>
-                    <div class="register-content">
-                        <h2>欢迎回来！</h2>
-                        <p>已有账号？立即登录继续体验</p>
-                        <button class="btn-white" id="showLogin">登录</button>
+                    <div class="green-panel">
+                        <div class="login-content">
+                            <h2>你好，朋友！</h2>
+                            <p>还没有账号？立即注册加入我们</p>
+                            <button class="btn-white" @click="switchToRegister">注册</button>
+                        </div>
+                        <div class="register-content">
+                            <h2>欢迎回来！</h2>
+                            <p>已有账号？立即登录继续体验</p>
+                            <button class="btn-white" @click="switchToLogin">登录</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const authContainer = document.getElementById('authContainer');
-            const showLogin = document.getElementById('showLogin');
-            const showRegister = document.getElementById('showRegister');
+        const { createApp, ref, reactive, onMounted } = Vue
 
-            function toggleRegisterMode(enable) {
-                if (enable) {
-                    authContainer.classList.add('register-mode');
-                } else {
-                    authContainer.classList.remove('register-mode');
+        const app = createApp({
+            delimiters: ['{$', '$}'],
+            setup() {
+                const isRegisterMode = ref(false)
+                const loading = ref(false)
+                const isLoggedIn = ref(false)
+                const userName = ref('')
+
+                const loginError = ref('')
+                const loginSuccess = ref('')
+                const registerError = ref('')
+                const registerSuccess = ref('')
+
+                const loginForm = reactive({
+                    username: '',
+                    password: ''
+                })
+
+                const registerForm = reactive({
+                    username: '',
+                    password: '',
+                    confirmPassword: ''
+                })
+
+                function clearMessages() {
+                    loginError.value = ''
+                    loginSuccess.value = ''
+                    registerError.value = ''
+                    registerSuccess.value = ''
+                }
+
+                async function handleLogin() {
+                    clearMessages()
+                    if (!loginForm.username || !loginForm.password) return
+                    loading.value = true
+                    try {
+                        const response = await fetch('/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                username: loginForm.username,
+                                password: loginForm.password
+                            })
+                        })
+                        const data = await response.json()
+                        if (data.success) {
+                            window.location.href = data.redirect || '/'
+                        } else {
+                            loginError.value = data.error || '登录失败'
+                        }
+                    } catch (err) {
+                        loginError.value = '网络错误，请稍后重试'
+                    } finally {
+                        loading.value = false
+                    }
+                }
+
+                async function handleRegister() {
+                    clearMessages()
+                    if (!registerForm.username || !registerForm.password || !registerForm.confirmPassword) return
+                    if (registerForm.password !== registerForm.confirmPassword) {
+                        registerError.value = '两次密码不一致'
+                        return
+                    }
+                    loading.value = true
+                    try {
+                        const response = await fetch('/register', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                username: registerForm.username,
+                                password: registerForm.password,
+                                confirm_password: registerForm.confirmPassword
+                            })
+                        })
+                        const data = await response.json()
+                        if (data.success) {
+                            registerSuccess.value = data.message || '注册成功'
+                            registerForm.username = ''
+                            registerForm.password = ''
+                            registerForm.confirmPassword = ''
+                        } else {
+                            registerError.value = data.error || '注册失败'
+                        }
+                    } catch (err) {
+                        registerError.value = '网络错误，请稍后重试'
+                    } finally {
+                        loading.value = false
+                    }
+                }
+
+                function switchToLogin() {
+                    isRegisterMode.value = false
+                    clearMessages()
+                }
+
+                function switchToRegister() {
+                    isRegisterMode.value = true
+                    clearMessages()
+                }
+
+                async function handleLogout() {
+                    try {
+                        await fetch('/logout', { method: 'GET' })
+                        window.location.href = '/'
+                    } catch (e) {
+                        window.location.href = '/logout'
+                    }
+                }
+
+                async function checkUserStatus() {
+                    try {
+                        const response = await fetch('/api/user/status')
+                        const data = await response.json()
+                        if (data.logged_in) {
+                            isLoggedIn.value = true
+                            userName.value = data.user_name
+                        }
+                    } catch (e) { }
+                }
+
+                onMounted(() => {
+                    checkUserStatus()
+                    if (window.location.pathname === '/register') {
+                        isRegisterMode.value = true
+                    }
+                })
+
+                return {
+                    isRegisterMode,
+                    loading,
+                    isLoggedIn,
+                    userName,
+                    loginError,
+                    loginSuccess,
+                    registerError,
+                    registerSuccess,
+                    loginForm,
+                    registerForm,
+                    handleLogin,
+                    handleRegister,
+                    switchToLogin,
+                    switchToRegister,
+                    handleLogout
                 }
             }
+        })
 
-            showLogin.addEventListener('click', function () {
-                toggleRegisterMode(false);
-            });
-
-            showRegister.addEventListener('click', function () {
-                toggleRegisterMode(true);
-            });
-
-            // 根据当前页面自动切换表单
-            if (window.location.pathname === '/register') {
-                toggleRegisterMode(true);
-            } else {
-                toggleRegisterMode(false);
-            }
-        });
+        app.mount('#app')
     </script>
 </body>
 

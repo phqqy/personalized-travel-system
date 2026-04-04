@@ -7,276 +7,419 @@
     <title>旅游推荐 - 个性化旅游系统</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/css/main.css">
+    <style>
+        .login-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .login-modal-box {
+            background: white;
+            border-radius: 12px;
+            padding: 32px 40px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .login-modal-icon {
+            font-size: 48px;
+            color: #f39c12;
+            margin-bottom: 16px;
+        }
+
+        .login-modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .login-modal-desc {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 24px;
+        }
+
+        .login-modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .login-modal-btn-primary {
+            padding: 10px 28px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .login-modal-btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .login-modal-btn-cancel {
+            padding: 10px 28px;
+            background: #ecf0f1;
+            color: #7f8c8d;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .login-modal-btn-cancel:hover {
+            background: #dde4e6;
+        }
+    </style>
 </head>
 
 <body class="recommend-page">
-    <!-- 导航栏 -->
-    <nav class="navbar">
-        <div class="container navbar-container">
-            <a href="/" class="logo">
-                <i class="fas fa-map-marked-alt"></i> 个性化旅游系统
-            </a>
-            <ul class="nav-links">
-                <li><a href="/" class="home-link"><i class="fas fa-home"></i> 首页</a></li>
-                <li><a href="/recommend"><i class="fas fa-star"></i> 旅游推荐</a></li>
-                <li><a href="/diary"><i class="fas fa-book"></i> 日记管理</a></li>
-                <li id="user-links" class="user-auth-links">
-                    <a href="/login"><i class="fas fa-sign-in-alt"></i> 登录</a>
-                    <a href="/register"><i class="fas fa-user-plus"></i> 注册</a>
-                </li>
-            </ul>
-        </div>
-    </nav>
-
-    <!-- 页面标题 -->
-    <section class="page-header">
-        <div class="container">
-            <h1>旅游推荐</h1>
-            <p>基于热度、评价和用户兴趣的个性化推荐</p>
-        </div>
-    </section>
-
-    <!-- 内容区 -->
-    <section class="content">
-        <div class="container">
-            <!-- 推荐选项 -->
-            <div class="btn-group">
-                <button id="hot-btn" class="btn btn-primary" onclick="recommendByHot()"
-                    style="padding: 10px 20px; border: none; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.3s; background-color: #3498db; color: white;">热门推荐</button>
-                <button id="rating-btn" class="btn btn-secondary" onclick="recommendByRating()"
-                    style="padding: 10px 20px; border: 1px solid #3498db; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.3s; background-color: white; color: #3498db;">评分推荐</button>
-            </div>
-
-            <!-- 景点推荐 -->
-            <h2 style="margin-top: 40px; margin-bottom: 20px;">热门景点</h2>
-            <div class="recommend-container" id="spots-container">
-                <!-- 景点卡片将通过JavaScript动态添加 -->
-            </div>
-
-            <!-- 名校游览 -->
-            <h2 style="margin-top: 60px; margin-bottom: 20px;">名校游览</h2>
-            <div class="recommend-container" id="universities-container">
-                <!-- 名校卡片将通过JavaScript动态添加 -->
-            </div>
-
-            <!-- 美食推荐 -->
-            <h2 id="food" style="margin-top: 60px; margin-bottom: 20px;">特色美食</h2>
-            <div class="recommend-container" id="food-container">
-                <!-- 美食卡片将通过JavaScript动态添加 -->
-            </div>
-        </div>
-    </section>
-
-    <!-- 页脚 -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>关于我们</h3>
-                    <p>个性化旅游系统致力于为用户提供便捷、智能的旅游服务，让每一次旅行都成为难忘的回忆。</p>
-                </div>
-
-                <div class="footer-section">
-                    <h3>联系我们</h3>
-                    <ul>
-                        <li><i class="fas fa-envelope"></i> contact@travel-system.com</li>
-                        <li><i class="fas fa-phone"></i> 123-456-7890</li>
-                        <li><i class="fas fa-map-marker-alt"></i> 北京市海淀区</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2026 个性化旅游系统. 保留所有权利.</p>
-            </div>
-        </div>
-    </footer>
-
-    <script>
-        // 检查用户登录状态
-        async function checkLoginStatus() {
-            try {
-                const response = await fetch('/api/user/status');
-                const data = await response.json();
-                const userLinks = document.getElementById('user-links');
-
-                if (data.logged_in) {
-                    userLinks.innerHTML = `
-                        <span style="margin-right: 15px; color: #3498db; font-weight: 500;">欢迎，${data.user_name}</span>
-                        <a href="/logout"><i class="fas fa-sign-out-alt"></i> 退出</a>
-                    `;
-                } else {
-                    userLinks.innerHTML = `
+    <div id="app">
+        <!-- 导航栏 -->
+        <nav class="navbar">
+            <div class="container navbar-container">
+                <a href="/" class="logo">
+                    <i class="fas fa-map-marked-alt"></i> 个性化旅游系统
+                </a>
+                <ul class="nav-links">
+                    <li><a href="/" class="home-link"><i class="fas fa-home"></i> 首页</a></li>
+                    <li><a href="/recommend"><i class="fas fa-star"></i> 旅游推荐</a></li>
+                    <li><a href="/diary" @click.prevent="checkLoginAndGo($event, '/diary')"><i class="fas fa-book"></i>
+                            日记管理</a></li>
+                    <li v-if="!isLoggedIn" class="user-auth-links">
                         <a href="/login"><i class="fas fa-sign-in-alt"></i> 登录</a>
                         <a href="/register"><i class="fas fa-user-plus"></i> 注册</a>
-                    `;
-                }
-            } catch (error) {
-                console.error('检查登录状态失败:', error);
-            }
-        }
+                    </li>
+                    <li v-else class="user-auth-links">
+                        <span style="margin-right: 15px; color: #3498db; font-weight: 500;">欢迎，{$ userName $}</span>
+                        <a href="/logout" @click.prevent="handleLogout"><i class="fas fa-sign-out-alt"></i> 退出</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
 
-        // 页面加载时检查登录状态
-        window.onload = function () {
-            checkLoginStatus();
-            recommendByHot().then(() => {
-                // 检查URL中是否包含#food锚点，如果包含则滚动到该位置
-                if (window.location.hash === '#food') {
-                    setTimeout(() => {
-                        const foodSection = document.getElementById('food');
-                        if (foodSection) {
-                            foodSection.scrollIntoView({ behavior: 'smooth' });
-                        }
-                    }, 500);
-                }
-            });
-        };
+        <!-- 页面标题 -->
+        <section class="page-header">
+            <div class="container">
+                <h1>旅游推荐</h1>
+                <p>基于热度、评价和用户兴趣的个性化推荐</p>
+            </div>
+        </section>
 
-        // 按热度推荐
-        async function recommendByHot() {
-            // 更新按钮样式
-            document.getElementById('hot-btn').style.backgroundColor = '#3498db';
-            document.getElementById('hot-btn').style.color = 'white';
-            document.getElementById('hot-btn').style.border = 'none';
+        <!-- 内容区 -->
+        <section class="content">
+            <div class="container">
+                <!-- 推荐选项 -->
+                <div class="btn-group">
+                    <button :class="currentMethod === 'hot' ? 'btn btn-primary' : 'btn btn-secondary'"
+                        @click="switchMethod('hot')"
+                        style="padding: 10px 20px; border: none; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.3s;"
+                        :style="currentMethod === 'hot' ? 'background-color: #3498db; color: white;' : 'background-color: white; color: #3498db; border: 1px solid #3498db;'">热门推荐</button>
+                    <button :class="currentMethod === 'rating' ? 'btn btn-primary' : 'btn btn-secondary'"
+                        @click="switchMethod('rating')"
+                        style="padding: 10px 20px; border: none; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.3s;"
+                        :style="currentMethod === 'rating' ? 'background-color: #3498db; color: white;' : 'background-color: white; color: #3498db; border: 1px solid #3498db;'">评分推荐</button>
+                </div>
 
-            document.getElementById('rating-btn').style.backgroundColor = 'white';
-            document.getElementById('rating-btn').style.color = '#3498db';
-            document.getElementById('rating-btn').style.border = '1px solid #3498db';
-
-            await loadSpots('hot');
-            await loadFood('hot');
-            await loadUniversities('hot');
-        }
-
-        // 按评分推荐
-        async function recommendByRating() {
-            // 更新按钮样式
-            document.getElementById('rating-btn').style.backgroundColor = '#3498db';
-            document.getElementById('rating-btn').style.color = 'white';
-            document.getElementById('rating-btn').style.border = 'none';
-
-            document.getElementById('hot-btn').style.backgroundColor = 'white';
-            document.getElementById('hot-btn').style.color = '#3498db';
-            document.getElementById('hot-btn').style.border = '1px solid #3498db';
-
-            await loadSpots('rating');
-            await loadFood('rating');
-            await loadUniversities('rating');
-        }
-
-        // 加载景点推荐
-        async function loadSpots(method) {
-            const container = document.getElementById('spots-container');
-            container.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i><p>加载中...</p></div>';
-
-            try {
-                const response = await fetch(`/api/recommend/spots?method=${method}&n=6`);
-                const spots = await response.json();
-
-                // 景点图片映射
-                const spotImageMap = {
-                    '故宫': '故宫.jpg',
-                    '长城': '长城.jpg',
-                    '颐和园': '颐和园.jpg',
-                    '天坛': '天坛.jpg',
-                    '天安门': '天安门.jpg',
-                    '圆明园': '圆明园.jpg'
-                };
-
-                container.innerHTML = spots.map(spot => `
-                    <div class="recommend-card">
-                        <a href="/map?spot=${encodeURIComponent(spot.name)}" onclick="return checkLogin(event, '/map?spot=${encodeURIComponent(spot.name)}')">
-                            <img src="/static/images/spots/${spotImageMap[spot.name] || '故宫.jpg'}" alt="${spot.name}" class="card-image">
-                            <div class="recommend-card-content">
-                                <h3>${spot.name}</h3>
-                                <div class="rating">
-                                    <i class="fas fa-star"></i> ${spot.rating} (热度: ${spot.popularity})
-                                </div>
-                                <p>${spot.category} · ${spot.location}</p>
-                            </div>
-                        </a>
+                <!-- 景点推荐 -->
+                <h2 style="margin-top: 40px; margin-bottom: 20px;">热门景点</h2>
+                <div class="recommend-container">
+                    <div v-if="spotsLoading" class="loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>加载中...</p>
                     </div>
-                `).join('');
-            } catch (error) {
-                console.error('加载景点推荐失败:', error);
-                container.innerHTML = '<p style="text-align: center; color: #e74c3c; padding: 50px;">加载失败，请重试</p>';
-            }
-        }
-
-        // 加载美食推荐
-        async function loadFood(method) {
-            const container = document.getElementById('food-container');
-            container.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i><p>加载中...</p></div>';
-
-            try {
-                const response = await fetch(`/api/recommend/food?method=${method}&n=6`);
-                const food = await response.json();
-
-                // 美食图片映射
-                const foodImageMap = {
-                    '北京烤鸭': '北京烤鸭.jpg',
-                    '炸酱面': '炸酱面.jpg',
-                    '豆汁': '豆汁.jpg',
-                    '炒肝': '炒肝.jpg',
-                    '卤煮火烧': '卤煮火烧.jpg',
-                    '涮羊肉': '涮羊肉.jpg'
-                };
-
-                container.innerHTML = food.map(item => `
-                    <div class="recommend-card">
-                        <img src="/static/images/food/${foodImageMap[item.name] || '北京烤鸭.jpg'}" alt="${item.name}" class="card-image">
-                        <div class="recommend-card-content">
-                            <h3>${item.name}</h3>
-                            <div class="rating">
-                                <i class="fas fa-star"></i> ${item.rating} (热度: ${item.popularity})
-                            </div>
-                            <p>${item.category} · ${item.location}</p>
+                    <template v-else>
+                        <div v-for="spot in spots" :key="spot.name" class="recommend-card">
+                            <a :href="'/map?spot=' + encodeURIComponent(spot.name)">
+                                <img :src="'/static/images/spots/' + (spotImageMap[spot.name] || '故宫.jpg')"
+                                    :alt="spot.name" class="card-image">
+                                <div class="recommend-card-content">
+                                    <h3>{$ spot.name $}</h3>
+                                    <div class="rating">
+                                        <i class="fas fa-star"></i> {$ spot.rating $} (热度: {$ spot.popularity $})
+                                    </div>
+                                    <p>{$ spot.category $} · {$ spot.location $}</p>
+                                </div>
+                            </a>
                         </div>
+                    </template>
+                </div>
+
+                <!-- 名校游览 -->
+                <h2 style="margin-top: 60px; margin-bottom: 20px;">名校游览</h2>
+                <div class="recommend-container">
+                    <div v-if="universitiesLoading" class="loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>加载中...</p>
                     </div>
-                `).join('');
-            } catch (error) {
-                console.error('加载美食推荐失败:', error);
-                container.innerHTML = '<p style="text-align: center; color: #e74c3c; padding: 50px;">加载失败，请重试</p>';
-            }
-        }
-
-        // 加载名校推荐
-        async function loadUniversities(method) {
-            const container = document.getElementById('universities-container');
-            container.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i><p>加载中...</p></div>';
-
-            try {
-                const response = await fetch(`/api/recommend/universities?method=${method}&n=6`);
-                const universities = await response.json();
-
-                // 名校图片映射
-                const universityImageMap = {
-                    '北京大学': '北京大学.jpg',
-                    '清华大学': '清华大学.jpg',
-                    '复旦大学': '复旦大学.jpg',
-                    '上海交通大学': '上海交通大学.jpg',
-                    '浙江大学': '浙江大学.jpg',
-                    '南京大学': '南京大学.jpg'
-                };
-
-                container.innerHTML = universities.map(university => `
-                    <div class="recommend-card">
-                        <a href="/map?spot=${encodeURIComponent(university.name)}" onclick="return checkLogin(event, '/map?spot=${encodeURIComponent(university.name)}')">
-                            <img src="/static/images/spots/${universityImageMap[university.name] || '故宫.jpg'}" alt="${university.name}" class="card-image">
-                            <div class="recommend-card-content">
-                                <h3>${university.name}</h3>
-                                <div class="rating">
-                                    <i class="fas fa-star"></i> ${university.rating} (热度: ${university.popularity})
+                    <template v-else>
+                        <div v-for="uni in universities" :key="uni.name" class="recommend-card">
+                            <a :href="'/map?spot=' + encodeURIComponent(uni.name)">
+                                <img :src="'/static/images/spots/' + (universityImageMap[uni.name] || '故宫.jpg')"
+                                    :alt="uni.name" class="card-image">
+                                <div class="recommend-card-content">
+                                    <h3>{$ uni.name $}</h3>
+                                    <div class="rating">
+                                        <i class="fas fa-star"></i> {$ uni.rating $} (热度: {$ uni.popularity $})
+                                    </div>
+                                    <p>{$ uni.category $} · {$ uni.location $}</p>
                                 </div>
-                                <p>${university.category} · ${university.location}</p>
-                            </div>
-                        </a>
+                            </a>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- 美食推荐 -->
+                <h2 id="food" ref="foodSection" style="margin-top: 60px; margin-bottom: 20px;">特色美食</h2>
+                <div class="recommend-container">
+                    <div v-if="foodLoading" class="loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>加载中...</p>
                     </div>
-                `).join('');
-            } catch (error) {
-                console.error('加载名校推荐失败:', error);
-                container.innerHTML = '<p style="text-align: center; color: #e74c3c; padding: 50px;">加载失败，请重试</p>';
+                    <template v-else>
+                        <div v-for="item in foodList" :key="item.name" class="recommend-card">
+                            <img :src="'/static/images/food/' + (foodImageMap[item.name] || '北京烤鸭.jpg')"
+                                :alt="item.name" class="card-image">
+                            <div class="recommend-card-content">
+                                <h3>{$ item.name $}</h3>
+                                <div class="rating">
+                                    <i class="fas fa-star"></i> {$ item.rating $} (热度: {$ item.popularity $})
+                                </div>
+                                <p>{$ item.category $} · {$ item.location $}</p>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </section>
+
+        <!-- 页脚 -->
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-section">
+                        <h3>关于我们</h3>
+                        <p>个性化旅游系统致力于为用户提供便捷、智能的旅游服务，让每一次旅行都成为难忘的回忆。</p>
+                    </div>
+                    <div class="footer-section">
+                        <h3>联系我们</h3>
+                        <ul>
+                            <li><i class="fas fa-envelope"></i> contact@travel-system.com</li>
+                            <li><i class="fas fa-phone"></i> 123-456-7890</li>
+                            <li><i class="fas fa-map-marker-alt"></i> 北京市海淀区</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2026 个性化旅游系统. 保留所有权利.</p>
+                </div>
+            </div>
+        </footer>
+
+        <!-- 登录提示弹窗 -->
+        <div v-if="showLoginModal" class="login-modal-overlay" @click.self="showLoginModal = false">
+            <div class="login-modal-box">
+                <div class="login-modal-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <div class="login-modal-title">请先登录</div>
+                <div class="login-modal-desc">您需要登录后才能访问该功能页面</div>
+                <div class="login-modal-buttons">
+                    <button class="login-modal-btn-cancel" @click="showLoginModal = false">取消</button>
+                    <button class="login-modal-btn-primary" @click="goToLogin">去登录</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script>
+        const { createApp, ref, reactive, onMounted } = Vue
+
+        const app = createApp({
+            delimiters: ['{$', '$}'],
+            setup() {
+                const isLoggedIn = ref(false)
+                const userName = ref('')
+                const showLoginModal = ref(false)
+                const pendingUrl = ref('')
+                const currentMethod = ref('hot')
+                const spots = ref([])
+                const universities = ref([])
+                const foodList = ref([])
+                const spotsLoading = ref(false)
+                const universitiesLoading = ref(false)
+                const foodLoading = ref(false)
+                const foodSection = ref(null)
+
+                const spotImageMap = reactive({
+                    '故宫': '故宫.jpg', '长城': '长城.jpg', '颐和园': '颐和园.jpg',
+                    '天坛': '天坛.jpg', '天安门': '天安门.jpg', '圆明园': '圆明园.jpg'
+                })
+                const foodImageMap = reactive({
+                    '北京烤鸭': '北京烤鸭.jpg', '炸酱面': '炸酱面.jpg', '豆汁': '豆汁.jpg',
+                    '炒肝': '炒肝.jpg', '卤煮火烧': '卤煮火烧.jpg', '涮羊肉': '涮羊肉.jpg'
+                })
+                const universityImageMap = reactive({
+                    '北京大学': '北京大学.jpg', '清华大学': '清华大学.jpg',
+                    '复旦大学': '复旦大学.jpg', '上海交通大学': '上海交通大学.jpg',
+                    '浙江大学': '浙江大学.jpg', '南京大学': '南京大学.jpg'
+                })
+
+                async function checkUserStatus() {
+                    try {
+                        const response = await fetch('/api/user/status')
+                        const data = await response.json()
+                        if (data.logged_in) {
+                            isLoggedIn.value = true
+                            userName.value = data.user_name
+                        }
+                    } catch (e) { }
+                }
+
+                async function handleLogout() {
+                    try {
+                        await fetch('/logout', { method: 'GET' })
+                        window.location.href = '/'
+                    } catch (e) {
+                        window.location.href = '/logout'
+                    }
+                }
+
+                async function checkLoginAndGo(event, url) {
+                    if (isLoggedIn.value) {
+                        window.location.href = url
+                        return
+                    }
+                    try {
+                        const response = await fetch('/api/user/status')
+                        const data = await response.json()
+                        if (data.logged_in) {
+                            isLoggedIn.value = true
+                            userName.value = data.user_name
+                            window.location.href = url
+                        } else {
+                            pendingUrl.value = url
+                            showLoginModal.value = true
+                        }
+                    } catch (e) {
+                        pendingUrl.value = url
+                        showLoginModal.value = true
+                    }
+                }
+
+                function goToLogin() {
+                    showLoginModal.value = false
+                    sessionStorage.setItem('redirectAfterLogin', pendingUrl.value)
+                    window.location.href = '/login'
+                }
+
+                async function loadSpots(method) {
+                    spotsLoading.value = true
+                    try {
+                        const response = await fetch(`/api/recommend/spots?method=${method}&n=6`)
+                        spots.value = await response.json()
+                    } catch (e) {
+                        console.error('加载景点失败:', e)
+                    } finally {
+                        spotsLoading.value = false
+                    }
+                }
+
+                async function loadFood(method) {
+                    foodLoading.value = true
+                    try {
+                        const response = await fetch(`/api/recommend/food?method=${method}&n=6`)
+                        foodList.value = await response.json()
+                    } catch (e) {
+                        console.error('加载美食失败:', e)
+                    } finally {
+                        foodLoading.value = false
+                    }
+                }
+
+                async function loadUniversities(method) {
+                    universitiesLoading.value = true
+                    try {
+                        const response = await fetch(`/api/recommend/universities?method=${method}&n=6`)
+                        universities.value = await response.json()
+                    } catch (e) {
+                        console.error('加载名校失败:', e)
+                    } finally {
+                        universitiesLoading.value = false
+                    }
+                }
+
+                function switchMethod(method) {
+                    currentMethod.value = method
+                    loadSpots(method)
+                    loadFood(method)
+                    loadUniversities(method)
+                }
+
+                onMounted(() => {
+                    checkUserStatus()
+                    switchMethod('hot').then(() => {
+                        if (window.location.hash === '#food') {
+                            setTimeout(() => {
+                                if (foodSection.value) {
+                                    foodSection.value.scrollIntoView({ behavior: 'smooth' })
+                                }
+                            }, 500)
+                        }
+                    })
+                })
+
+                return {
+                    isLoggedIn, userName, showLoginModal, currentMethod, spots, universities, foodList,
+                    spotsLoading, universitiesLoading, foodLoading, foodSection,
+                    spotImageMap, foodImageMap, universityImageMap,
+                    checkUserStatus, handleLogout, checkLoginAndGo, goToLogin, switchMethod
+                }
             }
-        }
+        })
+
+        app.mount('#app')
     </script>
 </body>
 

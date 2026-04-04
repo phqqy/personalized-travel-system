@@ -19,6 +19,11 @@ from backend.routes.diary import diary_bp
 from backend.routes.recommend import recommend_bp
 from backend.routes.rating import rating_bp
 
+# MySQL 迁移预留（取消注释以下两行即可启用）
+# from db import db, init_db
+# from models.user_model import User
+# from models.diary_model import Diary
+
 
 def create_app():
     """创建并配置Flask应用"""
@@ -29,7 +34,13 @@ def create_app():
     
     app.secret_key = config.SECRET_KEY
     app.debug = config.DEBUG
-    
+
+    # MySQL 迁移预留（取消注释以下代码块即可启用）
+    # app.config['SQLALCHEMY_DATABASE_URI'] = config.DATABASE_URL
+    # app.config['SQLALCHEMY_ENGINE_OPTIONS'] = config.SQLALCHEMY_ENGINE_OPTIONS
+    # app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = config.SQLALCHEMY_TRACK_MODIFICATIONS
+    # init_db(app)
+
     register_blueprints(app)
     
     return app

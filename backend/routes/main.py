@@ -24,20 +24,6 @@ def recommend():
     return render_template('recommend.html')
 
 
-@main_bp.route('/path')
-@login_required
-def path():
-    """路线规划页面"""
-    return render_template('path.html')
-
-
-@main_bp.route('/query')
-@login_required
-def query():
-    """场所查询页面"""
-    return render_template('query.html')
-
-
 @main_bp.route('/diary')
 @login_required
 def diary():
