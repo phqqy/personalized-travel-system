@@ -110,6 +110,31 @@
         .login-modal-btn-cancel:hover {
             background: #dde4e6;
         }
+
+        .more-btn {
+            color: #3498db;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 14px;
+            border: 1.5px solid #3498db;
+            border-radius: 20px;
+            transition: all 0.2s;
+            cursor: pointer;
+            background: white;
+        }
+
+        .more-btn:hover {
+            color: white;
+            background: #3498db;
+        }
+
+        .more-btn i {
+            font-size: 12px;
+        }
     </style>
 </head>
 
@@ -162,7 +187,13 @@
                 </div>
 
                 <!-- 景点推荐 -->
-                <h2 style="margin-top: 40px; margin-bottom: 20px;">热门景点</h2>
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-top: 40px; margin-bottom: 20px;">
+                    <h2 style="margin: 0;">热门景点</h2>
+                    <a href="/spots" class="more-btn">
+                        更多 <i class="fas fa-chevron-right"></i>
+                    </a>
+                </div>
                 <div class="recommend-container">
                     <div v-if="spotsLoading" class="loading">
                         <i class="fas fa-spinner"></i>
@@ -186,7 +217,13 @@
                 </div>
 
                 <!-- 名校游览 -->
-                <h2 style="margin-top: 60px; margin-bottom: 20px;">名校游览</h2>
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-top: 60px; margin-bottom: 20px;">
+                    <h2 style="margin: 0;">名校游览</h2>
+                    <a href="/universities" class="more-btn">
+                        更多 <i class="fas fa-chevron-right"></i>
+                    </a>
+                </div>
                 <div class="recommend-container">
                     <div v-if="universitiesLoading" class="loading">
                         <i class="fas fa-spinner"></i>
@@ -210,7 +247,13 @@
                 </div>
 
                 <!-- 美食推荐 -->
-                <h2 id="food" ref="foodSection" style="margin-top: 60px; margin-bottom: 20px;">特色美食</h2>
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-top: 60px; margin-bottom: 20px;">
+                    <h2 id="food" ref="foodSection" style="margin: 0;">特色美食</h2>
+                    <a href="/food" class="more-btn">
+                        更多 <i class="fas fa-chevron-right"></i>
+                    </a>
+                </div>
                 <div class="recommend-container">
                     <div v-if="foodLoading" class="loading">
                         <i class="fas fa-spinner"></i>
@@ -292,6 +335,10 @@
                 const foodLoading = ref(false)
                 const foodSection = ref(null)
 
+                const showAllSpots = ref(false)
+                const showAllUniversities = ref(false)
+                const showAllFood = ref(false)
+
                 const spotImageMap = reactive({
                     '故宫': '故宫.jpg', '长城': '长城.jpg', '颐和园': '颐和园.jpg',
                     '天坛': '天坛.jpg', '天安门': '天安门.jpg', '圆明园': '圆明园.jpg'
@@ -357,7 +404,8 @@
                 async function loadSpots(method) {
                     spotsLoading.value = true
                     try {
-                        const response = await fetch(`/api/recommend/spots?method=${method}&n=6`)
+                        const n = showAllSpots.value ? 99 : 6
+                        const response = await fetch(`/api/recommend/spots?method=${method}&n=${n}`)
                         spots.value = await response.json()
                     } catch (e) {
                         console.error('加载景点失败:', e)
@@ -369,7 +417,8 @@
                 async function loadFood(method) {
                     foodLoading.value = true
                     try {
-                        const response = await fetch(`/api/recommend/food?method=${method}&n=6`)
+                        const n = showAllFood.value ? 99 : 6
+                        const response = await fetch(`/api/recommend/food?method=${method}&n=${n}`)
                         foodList.value = await response.json()
                     } catch (e) {
                         console.error('加载美食失败:', e)
@@ -381,7 +430,8 @@
                 async function loadUniversities(method) {
                     universitiesLoading.value = true
                     try {
-                        const response = await fetch(`/api/recommend/universities?method=${method}&n=6`)
+                        const n = showAllUniversities.value ? 99 : 6
+                        const response = await fetch(`/api/recommend/universities?method=${method}&n=${n}`)
                         universities.value = await response.json()
                     } catch (e) {
                         console.error('加载名校失败:', e)
@@ -395,6 +445,18 @@
                     loadSpots(method)
                     loadFood(method)
                     loadUniversities(method)
+                }
+
+                async function toggleShowAll(type) {
+                    const stateMap = { spots: showAllSpots, universities: showAllUniversities, food: showAllFood }
+                    const loadMap = { spots: loadSpots, universities: loadUniversities, food: loadFood }
+                    const state = stateMap[type]
+                    state.value = !state.value
+                    if (state.value) {
+                        await loadMap[type](currentMethod.value)
+                    } else {
+                        await loadMap[type](currentMethod.value)
+                    }
                 }
 
                 onMounted(() => {
@@ -413,8 +475,9 @@
                 return {
                     isLoggedIn, userName, showLoginModal, currentMethod, spots, universities, foodList,
                     spotsLoading, universitiesLoading, foodLoading, foodSection,
+                    showAllSpots, showAllUniversities, showAllFood,
                     spotImageMap, foodImageMap, universityImageMap,
-                    checkUserStatus, handleLogout, checkLoginAndGo, goToLogin, switchMethod
+                    checkUserStatus, handleLogout, checkLoginAndGo, goToLogin, switchMethod, toggleShowAll
                 }
             }
         })
