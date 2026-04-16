@@ -15,43 +15,65 @@ auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    """登录页面"""
+    """登录页面 - 兼容表单提交和API调用"""
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        
+        if request.is_json:
+            data = request.get_json()
+            username = data.get('username', '')
+            password = data.get('password', '')
+        else:
+            username = request.form['username']
+            password = request.form['password']
+
         if user_service.verify_user(username, password):
             session['user_id'] = username
             user = user_service.get_user(username)
             session['user_name'] = user['name']
+            if request.is_json:
+                return jsonify({'success': True, 'message': '登录成功', 'redirect': '/'})
             return redirect(url_for('main.index'))
         else:
-            if user_service.user_exists(username):
-                return render_template('login.html', error='密码错误')
-            else:
-                return render_template('login.html', error='用户不存在')
-    return render_template('login.html')
+            error = '密码错误' if user_service.user_exists(username) else '用户不存在'
+            if request.is_json:
+                return jsonify({'success': False, 'error': error}), 400
+            return render_template('auth.html', error=error)
+    return render_template('auth.html')
 
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
-    """注册页面"""
+    """注册页面 - 兼容表单提交和API调用"""
     if request.method == 'POST':
-        username = request.form['username']
-        email = request.form['email']
-        password = request.form['password']
-        confirm_password = request.form['confirm_password']
-        
+        if request.is_json:
+            data = request.get_json()
+            username = data.get('username', '')
+            email = data.get('email', '')
+            password = data.get('password', '')
+            confirm_password = data.get('confirm_password', '')
+        else:
+            username = request.form['username']
+            email = request.form.get('email', '')
+            password = request.form['password']
+            confirm_password = request.form['confirm_password']
+
         if user_service.user_exists(username):
-            return render_template('register.html', error='用户名已存在')
-        
+            error = '用户名已存在'
+            if request.is_json:
+                return jsonify({'success': False, 'error': error}), 400
+            return render_template('auth.html', error=error)
+
         if password != confirm_password:
-            return render_template('register.html', error='两次密码不一致')
-        
+            error = '两次密码不一致'
+            if request.is_json:
+                return jsonify({'success': False, 'error': error}), 400
+            return render_template('auth.html', error=error)
+
         if user_service.create_user(username, email, password):
             diary_service.init_user_diaries(username)
-            return render_template('login.html', success='注册成功，请登录')
-    return render_template('register.html')
+            if request.is_json:
+                return jsonify({'success': True, 'message': '注册成功，请登录'})
+            return render_template('auth.html', success='注册成功，请登录')
+    return render_template('auth.html')
 
 
 @auth_bp.route('/logout')

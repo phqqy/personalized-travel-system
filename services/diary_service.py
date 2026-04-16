@@ -14,11 +14,29 @@ class DiaryService:
     """日记服务类"""
     
     def __init__(self):
-        self.user_diaries = DataStorage.load_data(config.DIARY_DATA_FILE, {})
+        raw_data = DataStorage.load_data(config.DIARY_DATA_FILE, None)
+        if raw_data is None:
+            self.user_diaries = {}
+            self._next_ids = {}
+        elif isinstance(raw_data, dict) and '_next_ids' in raw_data:
+            self.user_diaries = raw_data.get('user_diaries', {})
+            self._next_ids = raw_data.get('_next_ids', {})
+        else:
+            self.user_diaries = raw_data
+            self._next_ids = {}
     
     def save(self):
         """保存日记数据"""
-        DataStorage.save_data(config.DIARY_DATA_FILE, self.user_diaries)
+        DataStorage.save_data(config.DIARY_DATA_FILE, {
+            'user_diaries': self.user_diaries,
+            '_next_ids': self._next_ids
+        })
+    
+    def _get_next_id(self, username):
+        """获取下一个自增ID，确保唯一性"""
+        current_id = self._next_ids.get(username, 0) + 1
+        self._next_ids[username] = current_id
+        return current_id
     
     def get_user_diaries(self, username):
         """
@@ -48,7 +66,7 @@ class DiaryService:
         if username not in self.user_diaries:
             self.user_diaries[username] = []
         
-        diary_id = len(self.user_diaries[username]) + 1
+        diary_id = self._get_next_id(username)
         new_diary = {
             'id': diary_id,
             'title': title,
@@ -139,14 +157,12 @@ class DiaryService:
         if username not in self.user_diaries:
             self.user_diaries[username] = []
         
-        next_id = len(self.user_diaries[username]) + 1
         count = 0
         
         for diary in imported_diaries:
-            diary['id'] = next_id
+            diary['id'] = self._get_next_id(username)
             diary['updated_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             self.user_diaries[username].append(diary)
-            next_id += 1
             count += 1
         
         self.save()

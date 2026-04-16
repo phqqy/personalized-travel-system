@@ -32,7 +32,18 @@ class Config:
     USER_DATA_FILE = os.path.join(DB_DIR, 'user_data.pkl')
     DIARY_DATA_FILE = os.path.join(DB_DIR, 'diary_data.pkl')
     RATING_DATA_FILE = os.path.join(DB_DIR, 'ratings.pkl')
-    
+
+    # ========== MySQL 数据库配置（预留，迁移后启用）==========
+    # 格式：mysql+pymysql://用户名:密码@主机:端口/数据库名
+    DATABASE_URL = 'mysql+pymysql://root:password@localhost:3306/travel_system?charset=utf8mb4'
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_size': 5,
+        'max_overflow': 10,
+        'pool_recycle': 3600,
+        'pool_pre_ping': True,
+    }
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
     # 静态文件配置
     STATIC_FOLDER = 'static'
     STATIC_URL_PATH = '/static'

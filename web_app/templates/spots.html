@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>景点大全 - 个性化旅游系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/main.css">
+    <style>
+        .login-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .login-modal-box {
+            background: white;
+            border-radius: 12px;
+            padding: 32px 40px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .login-modal-icon {
+            font-size: 48px;
+            color: #f39c12;
+            margin-bottom: 16px;
+        }
+
+        .login-modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .login-modal-desc {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 24px;
+        }
+
+        .login-modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .login-modal-btn-primary {
+            padding: 10px 28px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .login-modal-btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .login-modal-btn-cancel {
+            padding: 10px 28px;
+            background: #ecf0f1;
+            color: #7f8c8d;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .login-modal-btn-cancel:hover {
+            background: #dde4e6;
+        }
+
+        .list-toolbar {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            min-width: 260px;
+            max-width: 400px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            padding: 0 18px;
+            transition: border-color 0.3s;
+        }
+
+        .search-box:focus-within {
+            border-color: #3498db;
+        }
+
+        .search-box i {
+            color: #bdc3c7;
+            font-size: 15px;
+            margin-right: 10px;
+        }
+
+        .search-box input {
+            flex: 1;
+            border: none;
+            outline: none;
+            padding: 12px 0;
+            font-size: 15px;
+            background: transparent;
+            color: #2c3e50;
+        }
+
+        .search-box input::placeholder {
+            color: #bdc3c7;
+        }
+
+        .sort-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .sort-btn {
+            padding: 10px 20px;
+            border: 1.5px solid #e0e0e0;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+            color: #7f8c8d;
+        }
+
+        .sort-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        .sort-btn:hover:not(.active) {
+            border-color: #3498db;
+            color: #3498db;
+        }
+
+        .tag-filter-bar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .tag-chip {
+            padding: 5px 16px;
+            border-radius: 15px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1.5px solid transparent;
+            background: #f5f7fa;
+            color: #555;
+        }
+
+        .tag-chip.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        .tag-chip:hover:not(.active) {
+            border-color: #bdc3c7;
+            background: #eef2f7;
+        }
+
+        .card-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .tag-badge {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .tag-green {
+            background: #e8f8f0;
+            color: #27ae60;
+        }
+
+        .tag-history {
+            background: #fef3e2;
+            color: #e67e22;
+        }
+
+        .tag-culture {
+            background: #ebf0fa;
+            color: #2980b9;
+        }
+
+        .tag-nature {
+            background: #e8faf0;
+            color: #16a085;
+        }
+
+        .tag-default {
+            background: #f0f0f0;
+            color: #777;
+        }
+
+        .list-result-info {
+            color: #95a5a6;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #bdc3c7;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+        }
+
+        .spot-card-extra {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+        }
+
+        .rating-count {
+            font-size: 12px;
+            color: #95a5a6;
+        }
+    </style>
+</head>
+
+<body class="recommend-page">
+    <div id="app">
+        <nav class="navbar">
+            <div class="container navbar-container">
+                <a href="/" class="logo">
+                    <i class="fas fa-map-marked-alt"></i> 个性化旅游系统
+                </a>
+                <ul class="nav-links">
+                    <li><a href="/" class="home-link"><i class="fas fa-home"></i> 首页</a></li>
+                    <li><a href="/recommend"><i class="fas fa-star"></i> 旅游推荐</a></li>
+                    <li><a href="/diary" @click.prevent="checkLoginAndGo($event, '/diary')"><i class="fas fa-book"></i>
+                            日记管理</a></li>
+                    <li v-if="!isLoggedIn" class="user-auth-links">
+                        <a href="/login"><i class="fas fa-sign-in-alt"></i> 登录</a>
+                        <a href="/register"><i class="fas fa-user-plus"></i> 注册</a>
+                    </li>
+                    <li v-else class="user-auth-links">
+                        <span style="margin-right: 15px; color: #3498db; font-weight: 500;">欢迎，{$ userName $}</span>
+                        <a href="/logout" @click.prevent="handleLogout"><i class="fas fa-sign-out-alt"></i> 退出</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <section class="page-header">
+            <div class="container">
+                <h1>景点大全</h1>
+                <p>探索全国热门景点，按热度或评分排序，支持标签筛选与关键词搜索</p>
+            </div>
+        </section>
+
+        <section class="content">
+            <div class="container">
+                <div class="list-toolbar">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="搜索景点名称、地区、标签..." v-model="keyword" @input="filterItems" />
+                    </div>
+                    <div class="sort-group">
+                        <button :class="'sort-btn ' + (sortMethod === 'hot' ? 'active' : '')"
+                            @click="changeSort('hot')">
+                            <i class="fas fa-fire"></i> 热门
+                        </button>
+                        <button :class="'sort-btn ' + (sortMethod === 'rating' ? 'active' : '')"
+                            @click="changeSort('rating')">
+                            <i class="fas fa-star"></i> 评分
+                        </button>
+                    </div>
+                </div>
+
+                <div class="tag-filter-bar">
+                    <span :class="'tag-chip ' + (!activeTag ? 'active' : '')" @click="setTag('')">全部</span>
+                    <span v-for="tag in allTags" :key="tag.name"
+                        :class="'tag-chip ' + (activeTag === tag.name ? 'active' : '')" @click="setTag(tag.name)">
+                        {$ tag.name $}
+                    </span>
+                </div>
+
+                <div class="list-result-info">共找到 {$ filteredList.length $} 个景点</div>
+
+                <div class="recommend-container">
+                    <div v-if="loading" class="loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>加载中...</p>
+                    </div>
+                    <template v-else-if="filteredList.length > 0">
+                        <div v-for="item in filteredList" :key="item.id" class="recommend-card">
+                            <a :href="'/map?spot=' + encodeURIComponent(item.name)">
+                                <img :src="item.image || '/static/images/spots/default.jpg'" :alt="item.name"
+                                    class="card-image">
+                                <div class="recommend-card-content">
+                                    <h3>{$ item.name $}</h3>
+                                    <div class="rating">
+                                        <i class="fas fa-star"></i> {$ item.rating $}
+                                        <span style="color:#95a5a6;font-size:13px;margin-left:8px;">
+                                            热度 {$ item.popularity $}
+                                        </span>
+                                    </div>
+                                    <p>{$ item.location $}</p>
+                                    <div class="card-tags">
+                                        <span v-for="tag in parseTags(item.category)" :key="tag"
+                                            :class="'tag-badge tag-' + getTagClass(tag)">
+                                            {$ tag $}
+                                        </span>
+                                    </div>
+                                    <div class="spot-card-extra">
+                                        <span class="rating-count">
+                                            <i class="fas fa-users" style="margin-right:4px;"></i>
+                                            {$ item.rating_count || 0 $} 人评价
+                                        </span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </template>
+                    <div v-else class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <p>未找到匹配的景点</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div v-if="showLoginModal" class="login-modal-overlay" @click.self="showLoginModal = false">
+            <div class="login-modal-box">
+                <div class="login-modal-icon"><i class="fas fa-lock"></i></div>
+                <div class="login-modal-title">需要登录</div>
+                <div class="login-modal-desc">请先登录后再访问此功能</div>
+                <div class="login-modal-buttons">
+                    <button class="login-modal-btn-primary" @click="goToLogin">去登录</button>
+                    <button class="login-modal-btn-cancel" @click="showLoginModal = false">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script>
+        const { ref, computed, onMounted } = Vue;
+
+        const app = Vue.createApp({
+            delimiters: ['{$', '$}'],
+            setup() {
+                const isLoggedIn = ref(false)
+                const userName = ref('')
+                const showLoginModal = ref(false)
+                const pendingUrl = ref('')
+                const loading = ref(true)
+                const keyword = ref('')
+                const sortMethod = ref('hot')
+                const activeTag = ref('')
+                const allItems = ref([])
+                const filteredList = ref([])
+                const allTags = ref([])
+
+                function getTagClass(tag) {
+                    const map = {
+                        '自然风光': 'nature', '绿色': 'nature', '生态': 'nature',
+                        '历史文化': 'history', '历史': 'history', '文物': 'history',
+                        '文化景点': 'culture', '文化': 'culture',
+                    }
+                    return map[tag] || 'default'
+                }
+
+                function parseTags(categoryStr) {
+                    if (!categoryStr) return []
+                    return categoryStr.split(/[,，、]/).map(s => s.trim()).filter(Boolean)
+                }
+
+                function collectAllTags(items) {
+                    const tagSet = new Set()
+                    items.forEach(item => {
+                        parseTags(item.category).forEach(t => tagSet.add(t))
+                    })
+                    return Array.from(tagSet).map(name => ({ name }))
+                }
+
+                function filterItems() {
+                    let list = [...allItems.value]
+                    if (keyword.value.trim()) {
+                        const kw = keyword.value.toLowerCase()
+                        list = list.filter(item =>
+                            item.name.toLowerCase().includes(kw) ||
+                            item.location.toLowerCase().includes(kw) ||
+                            item.category.toLowerCase().includes(kw)
+                        )
+                    }
+                    if (activeTag.value) {
+                        list = list.filter(item => parseTags(item.category).includes(activeTag.value))
+                    }
+                    if (sortMethod.value === 'rating') {
+                        list.sort((a, b) => b.rating - a.rating)
+                    } else {
+                        list.sort((a, b) => b.popularity - a.popularity)
+                    }
+                    filteredList.value = list
+                }
+
+                function changeSort(method) {
+                    sortMethod.value = method
+                    filterItems()
+                }
+
+                function setTag(tagName) {
+                    activeTag.value = tagName
+                    filterItems()
+                }
+
+                async function loadData() {
+                    loading.value = true
+                    try {
+                        const response = await fetch('/api/recommend/spots?method=hot&n=99')
+                        const data = await response.json()
+                        allItems.value = data
+                        allTags.value = collectAllTags(data)
+                        filterItems()
+                    } catch (e) {
+                        console.error('加载失败:', e)
+                    } finally {
+                        loading.value = false
+                    }
+                }
+
+                async function checkUserStatus() {
+                    try {
+                        const response = await fetch('/api/user/status')
+                        const data = await response.json()
+                        if (data.logged_in) {
+                            isLoggedIn.value = true
+                            userName.value = data.user_name
+                        }
+                    } catch (e) { }
+                }
+
+                async function handleLogout() {
+                    try { await fetch('/logout', { method: 'GET' }) } catch (e) { }
+                    window.location.href = '/'
+                }
+
+                async function checkLoginAndGo(event, url) {
+                    if (isLoggedIn.value) { window.location.href = url; return }
+                    try {
+                        const response = await fetch('/api/user/status')
+                        const data = await response.json()
+                        if (data.logged_in) {
+                            isLoggedIn.value = true
+                            userName.value = data.user_name
+                            window.location.href = url
+                        } else {
+                            pendingUrl.value = url
+                            showLoginModal.value = true
+                        }
+                    } catch (e) {
+                        pendingUrl.value = url
+                        showLoginModal.value = true
+                    }
+                }
+
+                function goToLogin() {
+                    showLoginModal.value = false
+                    sessionStorage.setItem('redirectAfterLogin', pendingUrl.value)
+                    window.location.href = '/login'
+                }
+
+                onMounted(() => {
+                    checkUserStatus()
+                    loadData()
+                })
+
+                return {
+                    isLoggedIn, userName, showLoginModal, pendingUrl,
+                    loading, keyword, sortMethod, activeTag,
+                    allItems, filteredList, allTags,
+                    getTagClass, parseTags, filterItems, changeSort, setTag,
+                    checkUserStatus, handleLogout, checkLoginAndGo, goToLogin
+                }
+            }
+        })
+        app.mount('#app')
+    </script>
+</body>
+
+</html>
