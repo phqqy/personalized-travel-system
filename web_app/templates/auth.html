@@ -525,6 +525,8 @@
                             registerForm.username = ''
                             registerForm.password = ''
                             registerForm.confirmPassword = ''
+                            // 跳转到偏好设置页面
+                            window.location.href = data.redirect || '/'
                         } else {
                             registerError.value = data.error || '注册失败'
                         }

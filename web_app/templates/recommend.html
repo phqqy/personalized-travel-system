@@ -174,105 +174,196 @@
         <!-- 内容区 -->
         <section class="content">
             <div class="container">
-                <!-- 推荐选项 -->
-                <div class="btn-group">
-                    <button :class="currentMethod === 'hot' ? 'btn btn-primary' : 'btn btn-secondary'"
-                        @click="switchMethod('hot')"
-                        style="padding: 10px 20px; border: none; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.3s;"
-                        :style="currentMethod === 'hot' ? 'background-color: #3498db; color: white;' : 'background-color: white; color: #3498db; border: 1px solid #3498db;'">热门推荐</button>
-                    <button :class="currentMethod === 'rating' ? 'btn btn-primary' : 'btn btn-secondary'"
-                        @click="switchMethod('rating')"
-                        style="padding: 10px 20px; border: none; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.3s;"
-                        :style="currentMethod === 'rating' ? 'background-color: #3498db; color: white;' : 'background-color: white; color: #3498db; border: 1px solid #3498db;'">评分推荐</button>
-                </div>
+                <!-- 搜索框 -->
+        <div style="margin-bottom: 20px;">
+            <form @submit.prevent="handleSearch" class="search-container">
+                <input
+                    type="text"
+                    v-model="searchQuery"
+                    placeholder="搜索景点、名校、美食..."
+                    class="search-input"
+                    style="padding: 10px 16px; border: 1px solid #ddd; border-radius: 6px; width: 300px; font-size: 15px;"
+                >
+                <button type="submit" class="search-btn" style="padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 6px; margin-left: 8px; cursor: pointer;">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+        </div>
 
-                <!-- 景点推荐 -->
-                <div
-                    style="display: flex; justify-content: space-between; align-items: center; margin-top: 40px; margin-bottom: 20px;">
-                    <h2 style="margin: 0;">热门景点</h2>
-                    <a href="/spots" class="more-btn">
-                        更多 <i class="fas fa-chevron-right"></i>
-                    </a>
+        <!-- 搜索结果区域 -->
+        <div v-if="isSearching" class="search-results-area">
+            <div v-if="spotsLoading || universitiesLoading || foodLoading" class="loading">
+                <i class="fas fa-spinner"></i>
+                <p>搜索中...</p>
+            </div>
+            <template v-else>
+                <div v-if="searchResults.spots.length === 0 && searchResults.universities.length === 0 && searchResults.foodList.length === 0" class="no-results">
+                    <p style="text-align: center; padding: 40px; color: #999; font-size: 16px;">
+                        <i class="fas fa-search"></i> 未找到相关内容
+                    </p>
                 </div>
-                <div class="recommend-container">
-                    <div v-if="spotsLoading" class="loading">
-                        <i class="fas fa-spinner"></i>
-                        <p>加载中...</p>
-                    </div>
-                    <template v-else>
-                        <div v-for="spot in spots" :key="spot.name" class="recommend-card">
-                            <a :href="'/map?spot=' + encodeURIComponent(spot.name)">
-                                <img :src="'/static/images/spots/' + (spotImageMap[spot.name] || '故宫.jpg')"
-                                    :alt="spot.name" class="card-image">
-                                <div class="recommend-card-content">
-                                    <h3>{$ spot.name $}</h3>
-                                    <div class="rating">
-                                        <i class="fas fa-star"></i> {$ spot.rating $} (热度: {$ spot.popularity $})
+                <template v-else>
+                    <!-- 景点搜索结果 -->
+                    <div v-if="searchResults.spots.length > 0">
+                        <h2 style="margin: 20px 0;">搜索结果</h2>
+                        <div class="recommend-container">
+                            <div v-for="spot in searchResults.spots" :key="spot.name" class="recommend-card">
+                                <a :href="'/map?spot=' + encodeURIComponent(spot.name)">
+                                    <img :src="'/static/images/spots/' + (spotImageMap[spot.name] || '故宫.jpg')"
+                                        :alt="spot.name" class="card-image">
+                                    <div class="recommend-card-content">
+                                        <h3>{$ spot.name $}</h3>
+                                        <div class="rating">
+                                            <i class="fas fa-star"></i> {$ spot.rating $} (热度: {$ spot.popularity $})
+                                        </div>
+                                        <p>{$ spot.category $} · {$ spot.location $}</p>
                                     </div>
-                                    <p>{$ spot.category $} · {$ spot.location $}</p>
-                                </div>
-                            </a>
-                        </div>
-                    </template>
-                </div>
-
-                <!-- 名校游览 -->
-                <div
-                    style="display: flex; justify-content: space-between; align-items: center; margin-top: 60px; margin-bottom: 20px;">
-                    <h2 style="margin: 0;">名校游览</h2>
-                    <a href="/universities" class="more-btn">
-                        更多 <i class="fas fa-chevron-right"></i>
-                    </a>
-                </div>
-                <div class="recommend-container">
-                    <div v-if="universitiesLoading" class="loading">
-                        <i class="fas fa-spinner"></i>
-                        <p>加载中...</p>
-                    </div>
-                    <template v-else>
-                        <div v-for="uni in universities" :key="uni.name" class="recommend-card">
-                            <a :href="'/map?spot=' + encodeURIComponent(uni.name)">
-                                <img :src="'/static/images/spots/' + (universityImageMap[uni.name] || '故宫.jpg')"
-                                    :alt="uni.name" class="card-image">
-                                <div class="recommend-card-content">
-                                    <h3>{$ uni.name $}</h3>
-                                    <div class="rating">
-                                        <i class="fas fa-star"></i> {$ uni.rating $} (热度: {$ uni.popularity $})
-                                    </div>
-                                    <p>{$ uni.category $} · {$ uni.location $}</p>
-                                </div>
-                            </a>
-                        </div>
-                    </template>
-                </div>
-
-                <!-- 美食推荐 -->
-                <div
-                    style="display: flex; justify-content: space-between; align-items: center; margin-top: 60px; margin-bottom: 20px;">
-                    <h2 id="food" ref="foodSection" style="margin: 0;">特色美食</h2>
-                    <a href="/food" class="more-btn">
-                        更多 <i class="fas fa-chevron-right"></i>
-                    </a>
-                </div>
-                <div class="recommend-container">
-                    <div v-if="foodLoading" class="loading">
-                        <i class="fas fa-spinner"></i>
-                        <p>加载中...</p>
-                    </div>
-                    <template v-else>
-                        <div v-for="item in foodList" :key="item.name" class="recommend-card">
-                            <img :src="'/static/images/food/' + (foodImageMap[item.name] || '北京烤鸭.jpg')"
-                                :alt="item.name" class="card-image">
-                            <div class="recommend-card-content">
-                                <h3>{$ item.name $}</h3>
-                                <div class="rating">
-                                    <i class="fas fa-star"></i> {$ item.rating $} (热度: {$ item.popularity $})
-                                </div>
-                                <p>{$ item.category $} · {$ item.location $}</p>
+                                </a>
                             </div>
                         </div>
-                    </template>
+                    </div>
+                    <!-- 名校搜索结果 -->
+                    <div v-if="searchResults.universities.length > 0">
+                        <h2 style="margin: 20px 0;">搜索结果</h2>
+                        <div class="recommend-container">
+                            <div v-for="uni in searchResults.universities" :key="uni.name" class="recommend-card">
+                                <a :href="'/map?spot=' + encodeURIComponent(uni.name)">
+                                    <img :src="'/static/images/spots/' + (universityImageMap[uni.name] || '故宫.jpg')"
+                                        :alt="uni.name" class="card-image">
+                                    <div class="recommend-card-content">
+                                        <h3>{$ uni.name $}</h3>
+                                        <div class="rating">
+                                            <i class="fas fa-star"></i> {$ uni.rating $} (热度: {$ uni.popularity $})
+                                        </div>
+                                        <p>{$ uni.category $} · {$ uni.location $}</p>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 美食搜索结果 -->
+                    <div v-if="searchResults.foodList.length > 0">
+                        <h2 style="margin: 20px 0;">搜索结果</h2>
+                        <div class="recommend-container">
+                            <div v-for="item in searchResults.foodList" :key="item.name" class="recommend-card">
+                                <img :src="'/static/images/food/' + (foodImageMap[item.name] || '北京烤鸭.jpg')"
+                                    :alt="item.name" class="card-image">
+                                <div class="recommend-card-content">
+                                    <h3>{$ item.name $}</h3>
+                                    <div class="rating">
+                                        <i class="fas fa-star"></i> {$ item.rating $} (热度: {$ item.popularity $})
+                                    </div>
+                                    <p>{$ item.category $} · {$ item.location $}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </template>
+        </div>
+
+        <!-- 默认推荐区域（搜索时隐藏） -->
+        <div v-if="!isSearching">
+            <!-- 推荐选项 -->
+            <div class="btn-group">
+                <button :class="currentMethod === 'hot' ? 'btn btn-primary' : 'btn btn-secondary'"
+                    @click="switchMethod('hot')"
+                    style="padding: 10px 20px; border: none; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.3s;"
+                    :style="currentMethod === 'hot' ? 'background-color: #3498db; color: white;' : 'background-color: white; color: #3498db; border: 1px solid #3498db;'">热门推荐</button>
+                <button :class="currentMethod === 'rating' ? 'btn btn-primary' : 'btn btn-secondary'"
+                    @click="switchMethod('rating')"
+                    style="padding: 10px 20px; border: none; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.3s;"
+                    :style="currentMethod === 'rating' ? 'background-color: #3498db; color: white;' : 'background-color: white; color: #3498db; border: 1px solid #3498db;'">评分推荐</button>
+            </div>
+
+            <!-- 景点推荐 -->
+            <div v-if="showSpots"
+                style="display: flex; justify-content: space-between; align-items: center; margin-top: 40px; margin-bottom: 20px;">
+                <h2 style="margin: 0;">热门景点</h2>
+                <a href="/spots" class="more-btn">
+                    更多 <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div v-if="showSpots" class="recommend-container">
+                <div v-if="spotsLoading" class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>加载中...</p>
                 </div>
+                <template v-else>
+                    <div v-for="spot in spots" :key="spot.name" class="recommend-card">
+                        <a :href="'/map?spot=' + encodeURIComponent(spot.name)">
+                            <img :src="'/static/images/spots/' + (spotImageMap[spot.name] || '故宫.jpg')"
+                                :alt="spot.name" class="card-image">
+                            <div class="recommend-card-content">
+                                <h3>{$ spot.name $}</h3>
+                                <div class="rating">
+                                    <i class="fas fa-star"></i> {$ spot.rating $} (热度: {$ spot.popularity $})
+                                </div>
+                                <p>{$ spot.category $} · {$ spot.location $}</p>
+                            </div>
+                        </a>
+                    </div>
+                </template>
+            </div>
+
+            <!-- 名校游览 -->
+            <div v-if="showUniversities"
+                style="display: flex; justify-content: space-between; align-items: center; margin-top: 60px; margin-bottom: 20px;">
+                <h2 style="margin: 0;">名校游览</h2>
+                <a href="/universities" class="more-btn">
+                    更多 <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div v-if="showUniversities" class="recommend-container">
+                <div v-if="universitiesLoading" class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>加载中...</p>
+                </div>
+                <template v-else>
+                    <div v-for="uni in universities" :key="uni.name" class="recommend-card">
+                        <a :href="'/map?spot=' + encodeURIComponent(uni.name)">
+                            <img :src="'/static/images/spots/' + (universityImageMap[uni.name] || '故宫.jpg')"
+                                :alt="uni.name" class="card-image">
+                            <div class="recommend-card-content">
+                                <h3>{$ uni.name $}</h3>
+                                <div class="rating">
+                                    <i class="fas fa-star"></i> {$ uni.rating $} (热度: {$ uni.popularity $})
+                                </div>
+                                <p>{$ uni.category $} · {$ uni.location $}</p>
+                            </div>
+                        </a>
+                    </div>
+                </template>
+            </div>
+
+            <!-- 美食推荐 -->
+            <div v-if="showFood"
+                style="display: flex; justify-content: space-between; align-items: center; margin-top: 60px; margin-bottom: 20px;">
+                <h2 id="food" ref="foodSection" style="margin: 0;">特色美食</h2>
+                <a href="/food" class="more-btn">
+                    更多 <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div v-if="showFood" class="recommend-container">
+                <div v-if="foodLoading" class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>加载中...</p>
+                </div>
+                <template v-else>
+                    <div v-for="item in foodList" :key="item.name" class="recommend-card">
+                        <img :src="'/static/images/food/' + (foodImageMap[item.name] || '北京烤鸭.jpg')"
+                            :alt="item.name" class="card-image">
+                        <div class="recommend-card-content">
+                            <h3>{$ item.name $}</h3>
+                            <div class="rating">
+                                <i class="fas fa-star"></i> {$ item.rating $} (热度: {$ item.popularity $})
+                            </div>
+                            <p>{$ item.category $} · {$ item.location $}</p>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
             </div>
         </section>
 
@@ -330,6 +421,12 @@
                 const spots = ref([])
                 const universities = ref([])
                 const foodList = ref([])
+                const searchQuery = ref('')
+                const isSearching = ref(false)
+                const searchResults = ref({ spots: [], universities: [], foodList: [] })
+                const showSpots = ref(true)
+                const showUniversities = ref(true)
+                const showFood = ref(true)
                 const spotsLoading = ref(false)
                 const universitiesLoading = ref(false)
                 const foodLoading = ref(false)
@@ -413,6 +510,72 @@
                         spotsLoading.value = false
                     }
                 }
+                
+                async function handleSearch() {
+                    if (searchQuery.value.trim() === '') {
+                        isSearching.value = false
+                        showSpots.value = true
+                        showUniversities.value = true
+                        showFood.value = true
+                        switchMethod(currentMethod.value)
+                        return
+                    }
+                    
+                    isSearching.value = true
+                    showSpots.value = false
+                    showUniversities.value = false
+                    showFood.value = false
+                    spotsLoading.value = true
+                    universitiesLoading.value = true
+                    foodLoading.value = true
+                    
+                    searchResults.value = { spots: [], universities: [], foodList: [] }
+                    
+                    try {
+                        const spotsRes = await fetch(`/api/recommend/search?query=${encodeURIComponent(searchQuery.value)}`)
+                        const universitiesRes = await fetch(`/api/recommend/search/universities?query=${encodeURIComponent(searchQuery.value)}`)
+                        const foodRes = await fetch(`/api/recommend/search/food?query=${encodeURIComponent(searchQuery.value)}`)
+                        
+                        console.log('景点搜索响应状态:', spotsRes.status, spotsRes.url)
+                        console.log('名校搜索响应状态:', universitiesRes.status, universitiesRes.url)
+                        console.log('美食搜索响应状态:', foodRes.status, foodRes.url)
+                        
+                        if (spotsRes.ok) {
+                            const spotsData = await spotsRes.json()
+                            console.log('景点搜索结果:', spotsData)
+                            searchResults.value.spots = spotsData
+                        } else {
+                            console.error('景点搜索请求失败:', spotsRes.status)
+                            const errorText = await spotsRes.text()
+                            console.error('错误响应内容:', errorText)
+                        }
+                        
+                        if (universitiesRes.ok) {
+                            const universitiesData = await universitiesRes.json()
+                            console.log('名校搜索结果:', universitiesData)
+                            searchResults.value.universities = universitiesData
+                        } else {
+                            console.error('名校搜索请求失败:', universitiesRes.status)
+                        }
+                        
+                        if (foodRes.ok) {
+                            const foodData = await foodRes.json()
+                            console.log('美食搜索结果:', foodData)
+                            searchResults.value.foodList = foodData
+                        } else {
+                            console.error('美食搜索请求失败:', foodRes.status)
+                        }
+                        
+                        console.log('最终搜索结果:', JSON.stringify(searchResults.value))
+                    } catch (e) {
+                        console.error('搜索失败:', e)
+                        console.error('错误堆栈:', e.stack)
+                    } finally {
+                        spotsLoading.value = false
+                        universitiesLoading.value = false
+                        foodLoading.value = false
+                    }
+                }
 
                 async function loadFood(method) {
                     foodLoading.value = true
@@ -442,9 +605,11 @@
 
                 function switchMethod(method) {
                     currentMethod.value = method
-                    loadSpots(method)
-                    loadFood(method)
-                    loadUniversities(method)
+                    if (!isSearching.value) {
+                        loadSpots(method)
+                        loadFood(method)
+                        loadUniversities(method)
+                    }
                 }
 
                 async function toggleShowAll(type) {
@@ -477,7 +642,8 @@
                     spotsLoading, universitiesLoading, foodLoading, foodSection,
                     showAllSpots, showAllUniversities, showAllFood,
                     spotImageMap, foodImageMap, universityImageMap,
-                    checkUserStatus, handleLogout, checkLoginAndGo, goToLogin, switchMethod, toggleShowAll
+                    checkUserStatus, handleLogout, checkLoginAndGo, goToLogin, switchMethod, toggleShowAll,
+                    searchQuery, handleSearch, isSearching, showSpots, showUniversities, showFood, searchResults
                 }
             }
         })

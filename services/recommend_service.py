@@ -130,37 +130,129 @@ class RecommendService:
             排序后的列表
         """
         if method == 'rating':
-            items.sort(key=lambda x: x.get('rating', 0), reverse=True)
+            # 按评分排序，评分相同则按热度排序
+            items.sort(key=lambda x: (x.get('rating', 0), x.get('popularity', 0)), reverse=True)
         else:
-            items.sort(key=lambda x: x.get('popularity', 0), reverse=True)
+            # 按热度排序，热度相同则按评分排序
+            items.sort(key=lambda x: (x.get('popularity', 0), x.get('rating', 0)), reverse=True)
         return items[:n]
 
-    def get_spots(self, method='hot', n=6):
+    def get_spots(self, method='hot', n=6, preferences=None):
         """
         获取景点推荐
         
         Args:
             method: 推荐方法 ('hot' 或 'rating')
             n: 返回数量
+            preferences: 用户偏好字典，含spot_types等
         
         Returns:
             景点列表，每项含: id, name, rating, popularity, category, location, image, rating_count
         """
         spots = self.get_spots_data()
+        
+        # 根据用户偏好过滤景点
+        if preferences and preferences.get('spot_types'):
+            preferred_types = preferences['spot_types']
+            filtered_spots = []
+            for spot in spots:
+                # 分割类别字符串，注意CSV中是用逗号分隔的
+                spot_categories = [cat.strip() for cat in spot.get('category', '').split(',')]
+                # 检查景点的分类是否包含用户偏好的类型
+                for category in spot_categories:
+                    if category in preferred_types:
+                        filtered_spots.append(spot)
+                        break
+            # 如果过滤结果不为空，使用过滤后的结果
+            if filtered_spots:
+                spots = filtered_spots
+        
         return RecommendService._sort_and_limit(spots[:], method, n)
+    
+    def search_spots(self, query):
+        """
+        搜索景点
+        
+        Args:
+            query: 搜索关键词
+        
+        Returns:
+            匹配的景点列表
+        """
+        spots = self.get_spots_data()
+        
+        # 简单的模糊搜索
+        results = []
+        for spot in spots:
+            if query in spot['name'] or query in spot['category']:
+                results.append(spot)
+        
+        return results
+    
+    def search_universities(self, query):
+        """
+        搜索名校
+        
+        Args:
+            query: 搜索关键词
+        
+        Returns:
+            匹配的名校列表
+        """
+        universities = self.get_universities_data()
+        
+        # 简单的模糊搜索
+        results = []
+        for uni in universities:
+            if query in uni['name'] or query in uni['category']:
+                results.append(uni)
+        
+        return results
+    
+    def search_food(self, query):
+        """
+        搜索美食
+        
+        Args:
+            query: 搜索关键词
+        
+        Returns:
+            匹配的美食列表
+        """
+        food = self.get_food_data()
+        
+        # 简单的模糊搜索
+        results = []
+        for item in food:
+            if query in item['name'] or query in item['category']:
+                results.append(item)
+        
+        return results
 
-    def get_food(self, method='hot', n=6):
+    def get_food(self, method='hot', n=6, preferences=None):
         """
         获取美食推荐
         
         Args:
             method: 推荐方法 ('hot' 或 'rating')
             n: 返回数量
+            preferences: 用户偏好字典，含cuisines等
         
         Returns:
             美食列表，每项含: id, name, rating, popularity, category, location, image, rating_count
         """
         food = self.get_food_data()
+        
+        # 根据用户偏好过滤美食
+        if preferences and preferences.get('cuisines'):
+            preferred_cuisines = preferences['cuisines']
+            filtered_food = []
+            for food_item in food:
+                food_category = food_item.get('category', '').strip()
+                if food_category in preferred_cuisines:
+                    filtered_food.append(food_item)
+            food = filtered_food or food  # 如果过滤后为空，返回全部美食
+        
         return RecommendService._sort_and_limit(food[:], method, n)
 
     def get_universities(self, method='hot', n=6):
