@@ -19,6 +19,8 @@ from backend.routes.diary import diary_bp
 from backend.routes.recommend import recommend_bp
 from backend.routes.travel import travel_bp
 from backend.routes.rating import rating_bp
+from backend.routes.video import video_bp
+
 
 
 def create_app():
@@ -44,6 +46,7 @@ def register_blueprints(app):
     app.register_blueprint(recommend_bp)
     app.register_blueprint(travel_bp)
     app.register_blueprint(rating_bp)
+    app.register_blueprint(video_bp)
 
 
 def init_data():

@@ -162,6 +162,37 @@ class DiaryService:
         if username not in self.user_diaries:
             self.user_diaries[username] = []
             self.save()
+    
+    def add_video_to_diary(self, username, diary_id, video_info):
+        """
+        将生成的视频关联到日记
+        
+        Args:
+            username: 用户名
+            diary_id: 日记ID
+            video_info: 视频信息字典
+        
+        Returns:
+            是否关联成功
+        """
+        diaries = self.user_diaries.get(username, [])
+        for diary in diaries:
+            if diary['id'] == diary_id:
+                if 'videos' not in diary:
+                    diary['videos'] = []
+                
+                video_entry = {
+                    'video_url': video_info.get('video_url'),
+                    'task_id': video_info.get('task_id'),
+                    'prompt': video_info.get('prompt'),
+                    'generated_at': video_info.get('generated_at', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                }
+                
+                diary['videos'].append(video_entry)
+                diary['updated_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                self.save()
+                return True
+        return False
 
 
 diary_service = DiaryService()

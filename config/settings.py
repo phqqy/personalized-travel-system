@@ -38,5 +38,14 @@ class Config:
     STATIC_URL_PATH = '/static'
     TEMPLATE_FOLDER = 'templates'
 
+    # 火山引擎（即梦AI）配置
+    VOLCENGINE_ACCESS_KEY = os.environ.get('VOLCENGINE_ACCESS_KEY', '')
+    VOLCENGINE_SECRET_KEY = os.environ.get('VOLCENGINE_SECRET_KEY', '')
+
+    # 视频生成配置
+    VIDEO_DEFAULT_ASPECT_RATIO = '16:9'
+    VIDEO_DEFAULT_FRAMES = 121
+    VIDEO_MAX_WAIT_SECONDS = 120
+
 
 config = Config()

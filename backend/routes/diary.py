@@ -51,6 +51,18 @@ def diary_operations():
         return jsonify({'success': success})
 
 
+@diary_bp.route('/diary/<int:diary_id>', methods=['GET'])
+@login_required
+def get_diary(diary_id):
+    """获取单个日记"""
+    username = session['user_id']
+    diaries = diary_service.get_user_diaries(username)
+    for diary in diaries:
+        if diary['id'] == diary_id:
+            return jsonify(diary)
+    return jsonify({'error': 'Diary not found'}), 404
+
+
 @diary_bp.route('/diary/export')
 @login_required
 def export_diary():
