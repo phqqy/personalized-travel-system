@@ -18,6 +18,7 @@ from backend.routes.auth import auth_bp
 from backend.routes.diary import diary_bp
 from backend.routes.recommend import recommend_bp
 from backend.routes.rating import rating_bp
+from backend.routes.preferences import preferences_bp
 
 # MySQL 迁移预留（取消注释以下两行即可启用）
 # from db import db, init_db
@@ -53,6 +54,7 @@ def register_blueprints(app):
     app.register_blueprint(diary_bp)
     app.register_blueprint(recommend_bp)
     app.register_blueprint(rating_bp)
+    app.register_blueprint(preferences_bp)
 
 
 def init_data():
