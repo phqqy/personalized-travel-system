@@ -68,11 +68,23 @@ def register():
                 return jsonify({'success': False, 'error': error}), 400
             return render_template('auth.html', error=error)
 
-        if user_service.create_user(username, email, password):
-            diary_service.init_user_diaries(username)
+        try:
+            if user_service.create_user(username, email, password):
+                diary_service.init_user_diaries(username)
+                # 注册成功后自动登录
+                session['user_id'] = username
+                user = user_service.get_user(username)
+                session['user_name'] = user['name']
+                
+                # 跳转到偏好设置页面
+                if request.is_json:
+                    return jsonify({'success': True, 'message': '注册成功', 'redirect': url_for('preferences.preferences')})
+                return redirect(url_for('preferences.preferences'))
+        except Exception as e:
+            error = f'注册失败: {str(e)}'
             if request.is_json:
-                return jsonify({'success': True, 'message': '注册成功，请登录'})
-            return render_template('auth.html', success='注册成功，请登录')
+                return jsonify({'success': False, 'error': error}), 500
+            return render_template('auth.html', error=error)
     return render_template('auth.html')
 
 

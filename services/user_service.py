@@ -97,5 +97,38 @@ class UserService:
             self.save()
             print("测试账号已创建: 用户名=test, 密码=123456")
 
+    def set_preferences(self, username, preferences):
+        """
+        设置用户偏好
+        
+        Args:
+            username: 用户名
+            preferences: 偏好字典
+        
+        Returns:
+            是否设置成功
+        """
+        user = self.get_user(username)
+        if user:
+            user['preferences'] = preferences
+            self.save()
+            return True
+        return False
+
+    def get_preferences(self, username):
+        """
+        获取用户偏好
+        
+        Args:
+            username: 用户名
+        
+        Returns:
+            用户偏好字典或None
+        """
+        user = self.get_user(username)
+        if user:
+            return user.get('preferences', {})
+        return None
+
 
 user_service = UserService()
