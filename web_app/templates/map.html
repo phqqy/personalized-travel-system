@@ -384,6 +384,196 @@
         .login-modal-btn-cancel:hover {
             background: #dde4e6;
         }
+
+        /* ========== 室内导航样式 ========== */
+        .nav-mode-tabs {
+            display: flex;
+            margin-bottom: 16px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #1890ff;
+        }
+
+        .nav-mode-tab {
+            flex: 1;
+            padding: 8px 0;
+            text-align: center;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            background: white;
+            color: #1890ff;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .nav-mode-tab:hover {
+            background: #e6f7ff;
+        }
+
+        .nav-mode-tab.active {
+            background: #1890ff;
+            color: white;
+        }
+
+        .indoor-map-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 36px rgba(0, 0, 0, 0.22);
+            z-index: 1001;
+            padding: 20px 24px;
+        }
+
+        .indoor-map-panel .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .indoor-map-panel .panel-header h4 {
+            margin: 0;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .indoor-canvas-wrapper {
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fafbfc;
+            cursor: crosshair;
+            line-height: 0;
+        }
+
+        #indoorCanvas {
+            display: block;
+        }
+
+        .floor-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 4px;
+            flex-wrap: wrap;
+        }
+
+        .floor-tab {
+            padding: 6px 16px;
+            border: 1px solid #d9d9d9;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            background: white;
+            user-select: none;
+        }
+
+        .floor-tab:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .floor-tab.active {
+            background: #1890ff;
+            color: white;
+            border-color: #1890ff;
+        }
+
+        .node-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            gap: 5px;
+            color: #555;
+        }
+
+        .legend-dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            border: 2px solid rgba(0, 0, 0, 0.15);
+        }
+
+        .indoor-select-mode-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .select-mode-btn {
+            flex: 1;
+            padding: 7px;
+            border: 2px solid #e8e8e8;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            text-align: center;
+            transition: all 0.2s;
+            background: #fafafa;
+            user-select: none;
+            font-weight: 500;
+        }
+
+        .select-mode-btn:hover {
+            border-color: #bbb;
+        }
+
+        .select-mode-btn.active-start {
+            background: #f6ffed;
+            color: #389e0d;
+            border-color: #52c41a;
+        }
+
+        .select-mode-btn.active-end {
+            background: #fff2f0;
+            color: #cf1322;
+            border-color: #ff4d4f;
+        }
+
+        .indoor-node-info {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .indoor-node-info .location-info {
+            flex: 1;
+            font-size: 12px;
+            min-height: 36px;
+        }
+
+        .indoor-path-info {
+            padding: 12px;
+            background: #f0f8ff;
+            border-radius: 8px;
+            border-left: 4px solid #1890ff;
+            font-size: 13px;
+        }
+
+        .indoor-path-info .path-step {
+            margin: 4px 0;
+            font-size: 12px;
+            color: #555;
+            padding-left: 8px;
+        }
+
+        .indoor-canvas-hint {
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            margin-top: 6px;
+        }
     </style>
 </head>
 
@@ -445,61 +635,174 @@
                     <i class="fas fa-chevron-left"></i>
                 </div>
                 <div class="sidebar-content">
-                    <h3><i class="fas fa-route"></i> 导航中心</h3>
+                    <!-- 导航模式切换 -->
+                    <div class="nav-mode-tabs">
+                        <div class="nav-mode-tab" :class="{ active: navMode === 'outdoor' }"
+                            @click="switchNavMode('outdoor')">
+                            <i class="fas fa-mountain"></i> 室外导航
+                        </div>
+                        <div class="nav-mode-tab" :class="{ active: navMode === 'indoor' }"
+                            @click="switchNavMode('indoor')">
+                            <i class="fas fa-building"></i> 室内导航
+                        </div>
+                    </div>
 
-                    <div class="sidebar-section">
-                        <h4>起点设置</h4>
-                        <div class="input-group">
-                            <input type="text" v-model="startInput" placeholder="输入起点（如：五道口）"
-                                @keyup.enter="setStartFromInput" />
-                            <button @click="setStartFromInput" class="btn-primary">
-                                <i class="fas fa-search"></i>
+                    <!-- ====== 室外导航内容 ====== -->
+                    <div v-show="navMode === 'outdoor'">
+                        <h3><i class="fas fa-route"></i> 室外导航</h3>
+
+                        <div class="sidebar-section">
+                            <h4>起点设置</h4>
+                            <div class="input-group">
+                                <input type="text" v-model="startInput" placeholder="输入起点（如：五道口）"
+                                    @keyup.enter="setStartFromInput" />
+                                <button @click="setStartFromInput" class="btn-primary">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                            <div class="location-info">{$ startInfo $}</div>
+                        </div>
+
+                        <div class="sidebar-section">
+                            <h4>终点设置</h4>
+                            <div class="input-group">
+                                <input type="text" v-model="endInput" placeholder="输入终点（如：中关村）"
+                                    @keyup.enter="setEndFromInput" />
+                                <button @click="setEndFromInput" class="btn-primary">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                            <div class="location-info">{$ endInfo $}</div>
+                        </div>
+
+                        <div class="sidebar-section">
+                            <h4>交通方式</h4>
+                            <div class="transport-options">
+                                <label class="transport-option">
+                                    <input type="radio" name="transport" value="driving" v-model="transportMode" />
+                                    <i class="fas fa-car"></i>
+                                    <span>驾车</span>
+                                </label>
+                                <label class="transport-option">
+                                    <input type="radio" name="transport" value="walking" v-model="transportMode" />
+                                    <i class="fas fa-walking"></i>
+                                    <span>步行</span>
+                                </label>
+                                <label class="transport-option">
+                                    <input type="radio" name="transport" value="bicycling" v-model="transportMode" />
+                                    <i class="fas fa-bicycle"></i>
+                                    <span>骑行</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="sidebar-actions">
+                            <button @click="startNavigation" class="btn-primary full-width">
+                                <i class="fas fa-map-signs"></i> 开始导航
+                            </button>
+                            <button @click="clearRoute" class="btn-secondary full-width">
+                                <i class="fas fa-eraser"></i> 清除路线
                             </button>
                         </div>
-                        <div class="location-info">{$ startInfo $}</div>
                     </div>
 
-                    <div class="sidebar-section">
-                        <h4>终点设置</h4>
-                        <div class="input-group">
-                            <input type="text" v-model="endInput" placeholder="输入终点（如：中关村）"
-                                @keyup.enter="setEndFromInput" />
-                            <button @click="setEndFromInput" class="btn-primary">
-                                <i class="fas fa-search"></i>
+                    <!-- ====== 室内导航内容 ====== -->
+                    <div v-show="navMode === 'indoor'">
+                        <h3><i class="fas fa-building"></i> 室内导航</h3>
+
+                        <div class="sidebar-section">
+                            <h4>选择建筑</h4>
+                            <select class="form-select" v-model="indoorBuildingId" @change="onBuildingChange">
+                                <option value="">-- 请选择建筑 --</option>
+                                <option v-for="b in indoorBuildings" :value="b.id">{$ b.name $}</option>
+                            </select>
+                        </div>
+
+                        <div class="sidebar-section" v-if="indoorBuildingId">
+                            <h4>选择楼层</h4>
+                            <div class="floor-tabs">
+                                <div v-for="f in indoorFloors" class="floor-tab"
+                                    :class="{ active: indoorFloor === f.floor }" @click="switchFloor(f.floor)">
+                                    {$ f.name $}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sidebar-section" v-if="indoorBuildingId">
+                            <h4>选择起终点</h4>
+                            <div class="indoor-select-mode-bar">
+                                <div class="select-mode-btn"
+                                    :class="{ 'active-start': indoorSelectMode === 'start' }"
+                                    @click="indoorSelectMode = 'start'">
+                                    <i class="fas fa-flag-checkered"></i> 设置起点
+                                </div>
+                                <div class="select-mode-btn"
+                                    :class="{ 'active-end': indoorSelectMode === 'end' }"
+                                    @click="indoorSelectMode = 'end'">
+                                    <i class="fas fa-flag"></i> 设置终点
+                                </div>
+                            </div>
+                            <div class="indoor-node-info">
+                                <div class="location-info">
+                                    <span style="color:#389e0d;">●</span> 起点: {$ indoorStartName $}
+                                </div>
+                                <div class="location-info">
+                                    <span style="color:#cf1322;">●</span> 终点: {$ indoorEndName $}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sidebar-actions" v-if="indoorBuildingId">
+                            <button @click="startIndoorNav" class="btn-primary full-width">
+                                <i class="fas fa-map-signs"></i> 室内导航
+                            </button>
+                            <button @click="clearIndoorRoute" class="btn-secondary full-width">
+                                <i class="fas fa-eraser"></i> 清除路线
                             </button>
                         </div>
-                        <div class="location-info">{$ endInfo $}</div>
-                    </div>
 
-                    <div class="sidebar-section">
-                        <h4>交通方式</h4>
-                        <div class="transport-options">
-                            <label class="transport-option">
-                                <input type="radio" name="transport" value="driving" v-model="transportMode" />
-                                <i class="fas fa-car"></i>
-                                <span>驾车</span>
-                            </label>
-                            <label class="transport-option">
-                                <input type="radio" name="transport" value="walking" v-model="transportMode" />
-                                <i class="fas fa-walking"></i>
-                                <span>步行</span>
-                            </label>
-                            <label class="transport-option">
-                                <input type="radio" name="transport" value="bicycling" v-model="transportMode" />
-                                <i class="fas fa-bicycle"></i>
-                                <span>骑行</span>
-                            </label>
+                        <div v-if="indoorPathResult" class="indoor-path-info">
+                            <div style="margin-bottom:4px;"><strong><i class="fas fa-route"></i> 导航结果</strong></div>
+                            <div><i class="fas fa-road"></i> 总距离: {$ indoorPathResult.total_distance $} 米</div>
+                            <div><i class="fas fa-shoe-prints"></i> 步数: {$ indoorPathResult.steps $} 步</div>
+                            <div style="margin-top:6px;" v-if="indoorPathResult.path && indoorPathResult.path.length > 0">
+                                <div v-for="(node, idx) in indoorPathResult.path" class="path-step">
+                                    {$ idx + 1 $}. {$ node.name $}
+                                    <span style="color:#999;">({$ node.floor_name || node.floor $}F)</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <div class="sidebar-actions">
-                        <button @click="startNavigation" class="btn-primary full-width">
-                            <i class="fas fa-map-signs"></i> 开始导航
-                        </button>
-                        <button @click="clearRoute" class="btn-secondary full-width">
-                            <i class="fas fa-eraser"></i> 清除路线
-                        </button>
-                    </div>
+            <!-- 室内地图面板 -->
+            <div class="indoor-map-panel" v-show="navMode === 'indoor' && indoorBuildingId">
+                <div class="panel-header">
+                    <h4>
+                        <i class="fas fa-map"></i>
+                        {$ indoorBuildingName $} · {$ indoorFloorName $}
+                    </h4>
+                </div>
+                <div class="indoor-canvas-wrapper">
+                    <canvas id="indoorCanvas" width="620" height="420" @click="onCanvasClick"></canvas>
+                </div>
+                <div class="indoor-canvas-hint">
+                    <i class="fas fa-mouse-pointer"></i> 点击地图上的节点来设置起点/终点
+                </div>
+                <div class="node-legend">
+                    <div class="legend-item"><span class="legend-dot" style="background:#52c41a;"></span>入口</div>
+                    <div class="legend-item"><span class="legend-dot" style="background:#1890ff;"></span>电梯</div>
+                    <div class="legend-item"><span class="legend-dot" style="background:#fa8c16;"></span>楼梯</div>
+                    <div class="legend-item"><span class="legend-dot" style="background:#722ed1;"></span>教室</div>
+                    <div class="legend-item"><span class="legend-dot" style="background:#eb2f96;"></span>服务</div>
+                    <div class="legend-item"><span class="legend-dot" style="background:#13c2c2;"></span>区域</div>
+                    <div class="legend-item"><span class="legend-dot" style="background:#8c8c8c;"></span>办公室</div>
+                    <div class="legend-item"><span class="legend-dot" style="background:#faad14;"></span>卫生间</div>
+                    <div class="legend-item"><span class="legend-dot" style="background:#a0522d;"></span>咖啡厅</div>
+                    <div class="legend-item"><span class="legend-dot" style="background:#595959;"></span>仓库</div>
+                    <div class="legend-item"><span class="legend-dot" style="background:#f5222d;"></span>健身房</div>
+                    <div class="legend-item"><span class="legend-dot" style="background:#2db7f5;"></span>休息区</div>
                 </div>
             </div>
 
@@ -572,6 +875,25 @@
                     const routeDistance = ref('0')
                     const routeTime = ref('0')
                     const routeTransport = ref('驾车')
+
+                    // ====== 室内导航状态 ======
+                    const navMode = ref('outdoor')
+                    const indoorBuildings = ref([])
+                    const indoorBuildingId = ref('')
+                    const indoorBuildingName = ref('')
+                    const indoorFloors = ref([])
+                    const indoorFloor = ref(1)
+                    const indoorFloorName = ref('')
+                    const indoorFloorNodes = ref([])
+                    const indoorFloorEdges = ref([])
+                    const indoorSelectMode = ref('start')
+                    const indoorStartNode = ref(null)
+                    const indoorStartName = ref('未设置')
+                    const indoorEndNode = ref(null)
+                    const indoorEndName = ref('未设置')
+                    const indoorPathResult = ref(null)
+                    const indoorPathNodeIds = ref(new Set())  // 当前楼层路径上的节点ID集合
+                    const indoorPathEdgePairs = ref(new Set())  // 当前楼层路径上的边对
 
                     let map = null
                     let placeSearch = null
@@ -807,6 +1129,405 @@
                         showRouteInfo.value = false
                     }
 
+                    // ====== 室内导航函数 ======
+
+                    function switchNavMode(mode) {
+                        navMode.value = mode
+                        if (mode === 'indoor') {
+                            // 加载室内建筑列表
+                            if (indoorBuildings.value.length === 0) {
+                                loadIndoorBuildings()
+                            }
+                            // 如果已有建筑和楼层，重新绘制画布
+                            if (indoorBuildingId.value) {
+                                setTimeout(() => drawIndoorFloor(), 100)
+                            }
+                        } else {
+                            // 切换回室外模式时重新显示地图
+                            if (map) {
+                                map.show()
+                            }
+                        }
+                    }
+
+                    async function loadIndoorBuildings() {
+                        try {
+                            const resp = await fetch('/api/map/indoor/buildings')
+                            const data = await resp.json()
+                            if (data.success) {
+                                indoorBuildings.value = data.buildings
+                            }
+                        } catch (e) {
+                            console.error('加载室内建筑失败:', e)
+                        }
+                    }
+
+                    async function onBuildingChange() {
+                        if (!indoorBuildingId.value) {
+                            indoorFloors.value = []
+                            indoorFloor.value = 1
+                            indoorFloorNodes.value = []
+                            indoorFloorEdges.value = []
+                            clearIndoorRoute()
+                            return
+                        }
+                        try {
+                            const resp = await fetch('/api/map/indoor/building/' + indoorBuildingId.value)
+                            const data = await resp.json()
+                            if (data.success && data.building) {
+                                const b = data.building
+                                indoorBuildingName.value = b.name
+                                indoorFloors.value = b.floors.map(f => ({ floor: f.floor, name: f.name }))
+                                if (b.floors.length > 0) {
+                                    indoorFloor.value = b.floors[0].floor
+                                    indoorFloorName.value = b.floors[0].name
+                                    indoorFloorNodes.value = b.floors[0].nodes || []
+                                    indoorFloorEdges.value = b.floors[0].edges || []
+                                }
+                                clearIndoorRoute()
+                                setTimeout(() => drawIndoorFloor(), 150)
+                            }
+                        } catch (e) {
+                            console.error('加载建筑详情失败:', e)
+                        }
+                    }
+
+                    async function switchFloor(floor) {
+                        indoorFloor.value = floor
+                        indoorPathNodeIds.value = new Set()
+                        indoorPathEdgePairs.value = new Set()
+                        try {
+                            const resp = await fetch('/api/map/indoor/floor/' + indoorBuildingId.value + '/' + floor)
+                            const data = await resp.json()
+                            if (data.success) {
+                                indoorFloorNodes.value = data.nodes
+                                // 获取该楼层的边
+                                await loadFloorEdges(floor)
+                                // 根据已存在的路径结果显示当前楼层的路径段
+                                updateCurrentFloorPathSegments()
+                                setTimeout(() => drawIndoorFloor(), 50)
+                            }
+                        } catch (e) {
+                            console.error('切换楼层失败:', e)
+                        }
+                    }
+
+                    async function loadFloorEdges(floor) {
+                        try {
+                            const resp = await fetch('/api/map/indoor/building/' + indoorBuildingId.value)
+                            const data = await resp.json()
+                            if (data.success && data.building) {
+                                for (const f of data.building.floors) {
+                                    if (f.floor === floor) {
+                                        indoorFloorEdges.value = f.edges || []
+                                        const name = f.name || (floor + '层')
+                                        indoorFloorName.value = name
+                                        return
+                                    }
+                                }
+                            }
+                        } catch (e) { }
+                    }
+
+                    function updateCurrentFloorPathSegments() {
+                        // 如果存在跨楼层路径，计算当前楼层的路径段
+                        indoorPathNodeIds.value = new Set()
+                        indoorPathEdgePairs.value = new Set()
+                        if (!indoorPathResult.value || !indoorPathResult.value.path) return
+
+                        const path = indoorPathResult.value.path
+                        const currentFloor = indoorFloor.value
+                        const floorNodeIds = new Set(indoorFloorNodes.value.map(n => n.id))
+
+                        // 找出路径中在当前楼层的节点
+                        const floorPathNodes = path.filter(n => n.floor === currentFloor || n.floor === undefined)
+                        for (const n of floorPathNodes) {
+                            if (floorNodeIds.has(n.id)) {
+                                indoorPathNodeIds.value.add(n.id)
+                            }
+                        }
+                        // 找出路径中在当前楼层的连续边
+                        const pathIds = path.map(n => n.id)
+                        for (let i = 0; i < pathIds.length - 1; i++) {
+                            const a = pathIds[i]
+                            const b = pathIds[i + 1]
+                            if (floorNodeIds.has(a) && floorNodeIds.has(b)) {
+                                indoorPathEdgePairs.value.add(a + '|' + b)
+                                indoorPathEdgePairs.value.add(b + '|' + a)
+                            }
+                        }
+                    }
+
+                    function getNodeColor(type) {
+                        const colors = {
+                            'entrance': '#52c41a',
+                            'elevator': '#1890ff',
+                            'stairs': '#fa8c16',
+                            'classroom': '#722ed1',
+                            'service': '#eb2f96',
+                            'area': '#13c2c2',
+                            'office': '#8c8c8c',
+                            'toilet': '#faad14',
+                            'cafe': '#a0522d',
+                            'storage': '#595959',
+                            'gym': '#f5222d',
+                            'lounge': '#2db7f5'
+                        }
+                        return colors[type] || '#bbb'
+                    }
+
+                    function drawIndoorFloor() {
+                        const canvas = document.getElementById('indoorCanvas')
+                        if (!canvas) return
+                        const ctx = canvas.getContext('2d')
+                        const dpr = window.devicePixelRatio || 1
+                        const W = 620, H = 420
+                        canvas.width = W * dpr
+                        canvas.height = H * dpr
+                        canvas.style.width = W + 'px'
+                        canvas.style.height = H + 'px'
+                        ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+
+                        // 清空
+                        ctx.clearRect(0, 0, W, H)
+                        ctx.fillStyle = '#fafbfc'
+                        ctx.fillRect(0, 0, W, H)
+
+                        const nodes = indoorFloorNodes.value
+                        const edges = indoorFloorEdges.value
+
+                        if (!nodes || nodes.length === 0) {
+                            ctx.fillStyle = '#999'
+                            ctx.font = '16px sans-serif'
+                            ctx.textAlign = 'center'
+                            ctx.fillText('暂无该楼层数据', W / 2, H / 2)
+                            return
+                        }
+
+                        // 计算坐标范围并缩放
+                        const padding = 55
+                        const xs = nodes.map(n => n.x), ys = nodes.map(n => n.y)
+                        const minX = Math.min(...xs), maxX = Math.max(...xs)
+                        const minY = Math.min(...ys), maxY = Math.max(...ys)
+                        const rangeX = maxX - minX || 1
+                        const rangeY = maxY - minY || 1
+                        const scaleX = (W - padding * 2) / rangeX
+                        const scaleY = (H - padding * 2) / rangeY
+                        const scale = Math.min(scaleX, scaleY)
+                        const offsetX = padding + ((W - padding * 2) - rangeX * scale) / 2
+                        const offsetY = padding + ((H - padding * 2) - rangeY * scale) / 2
+
+                        function tx(x) { return offsetX + (x - minX) * scale }
+                        function ty(y) { return offsetY + (y - minY) * scale }
+
+                        // 创建节点坐标映射
+                        const nodePos = {}
+                        for (const n of nodes) {
+                            nodePos[n.id] = { x: tx(n.x), y: ty(n.y) }
+                        }
+
+                        // 路径边集合
+                        const pathEdges = indoorPathEdgePairs.value
+                        const pathNodes = indoorPathNodeIds.value
+
+                        // 绘制普通边
+                        ctx.lineWidth = 2
+                        ctx.strokeStyle = '#d9d9d9'
+                        ctx.beginPath()
+                        for (const e of edges) {
+                            const a = nodePos[e.from], b = nodePos[e.to]
+                            if (a && b) {
+                                ctx.moveTo(a.x, a.y)
+                                ctx.lineTo(b.x, b.y)
+                            }
+                        }
+                        ctx.stroke()
+
+                        // 绘制路径边（高亮）
+                        if (pathEdges.size > 0) {
+                            ctx.lineWidth = 3.5
+                            ctx.strokeStyle = '#1890ff'
+                            ctx.beginPath()
+                            for (const e of edges) {
+                                const key = e.from + '|' + e.to
+                                if (pathEdges.has(key)) {
+                                    const a = nodePos[e.from], b = nodePos[e.to]
+                                    if (a && b) {
+                                        ctx.moveTo(a.x, a.y)
+                                        ctx.lineTo(b.x, b.y)
+                                    }
+                                }
+                            }
+                            ctx.stroke()
+                        }
+
+                        // 绘制节点
+                        const nodeRadius = 16
+                        for (const n of nodes) {
+                            const pos = nodePos[n.id]
+                            if (!pos) continue
+                            const isPathNode = pathNodes.has(n.id)
+                            const isStart = indoorStartNode.value && indoorStartNode.value.id === n.id
+                            const isEnd = indoorEndNode.value && indoorEndNode.value.id === n.id
+
+                            // 选中光环
+                            if (isStart) {
+                                ctx.beginPath()
+                                ctx.arc(pos.x, pos.y, nodeRadius + 6, 0, Math.PI * 2)
+                                ctx.fillStyle = 'rgba(82, 196, 26, 0.25)'
+                                ctx.fill()
+                                ctx.strokeStyle = '#389e0d'
+                                ctx.lineWidth = 2.5
+                                ctx.stroke()
+                            }
+                            if (isEnd) {
+                                ctx.beginPath()
+                                ctx.arc(pos.x, pos.y, nodeRadius + 6, 0, Math.PI * 2)
+                                ctx.fillStyle = 'rgba(255, 77, 79, 0.25)'
+                                ctx.fill()
+                                ctx.strokeStyle = '#cf1322'
+                                ctx.lineWidth = 2.5
+                                ctx.stroke()
+                            }
+
+                            // 节点主体
+                            ctx.beginPath()
+                            ctx.arc(pos.x, pos.y, isPathNode ? nodeRadius + 2 : nodeRadius, 0, Math.PI * 2)
+                            ctx.fillStyle = getNodeColor(n.type)
+                            ctx.fill()
+                            ctx.strokeStyle = 'rgba(0,0,0,0.2)'
+                            ctx.lineWidth = 1.5
+                            ctx.stroke()
+
+                            // 节点内图标
+                            ctx.fillStyle = '#fff'
+                            ctx.font = 'bold 11px sans-serif'
+                            ctx.textAlign = 'center'
+                            ctx.textBaseline = 'middle'
+                            const icons = {
+                                'entrance': '门', 'elevator': '梯', 'stairs': '楼',
+                                'classroom': '教', 'service': '服', 'area': '区', 'office': '办',
+                                'toilet': 'WC', 'cafe': '咖', 'storage': '库', 'gym': '健', 'lounge': '休'
+                            }
+                            ctx.fillText(icons[n.type] || '●', pos.x, pos.y)
+
+                            // 标签
+                            ctx.fillStyle = '#333'
+                            ctx.font = '12px sans-serif'
+                            ctx.fillText(n.name, pos.x, pos.y - nodeRadius - 8)
+                        }
+                    }
+
+                    function onCanvasClick(e) {
+                        const canvas = document.getElementById('indoorCanvas')
+                        if (!canvas) return
+                        const rect = canvas.getBoundingClientRect()
+                        const scaleX = 620 / rect.width   // canvas 逻辑宽 / CSS 宽
+                        const scaleY = 420 / rect.height
+                        const mx = (e.clientX - rect.left) * scaleX
+                        const my = (e.clientY - rect.top) * scaleY
+
+                        // 重算坐标映射找到最近的节点
+                        const nodes = indoorFloorNodes.value
+                        if (!nodes || nodes.length === 0) return
+
+                        const padding = 55
+                        const W = 620, H = 420
+                        const xs = nodes.map(n => n.x), ys = nodes.map(n => n.y)
+                        const minX = Math.min(...xs), maxX = Math.max(...xs)
+                        const minY = Math.min(...ys), maxY = Math.max(...ys)
+                        const rangeX = maxX - minX || 1
+                        const rangeY = maxY - minY || 1
+                        const s = Math.min((W - padding * 2) / rangeX, (H - padding * 2) / rangeY)
+                        const offsetX = padding + ((W - padding * 2) - rangeX * s) / 2
+                        const offsetY = padding + ((H - padding * 2) - rangeY * s) / 2
+
+                        let closestNode = null
+                        let closestDist = Infinity
+                        for (const n of nodes) {
+                            const nx = offsetX + (n.x - minX) * s
+                            const ny = offsetY + (n.y - minY) * s
+                            const dist = Math.sqrt((mx - nx) ** 2 + (my - ny) ** 2)
+                            if (dist < closestDist) {
+                                closestDist = dist
+                                closestNode = n
+                            }
+                        }
+
+                        const threshold = 30
+                        if (closestNode && closestDist < threshold) {
+                            if (indoorSelectMode.value === 'start') {
+                                indoorStartNode.value = closestNode
+                                indoorStartName.value = closestNode.name
+                            } else {
+                                indoorEndNode.value = closestNode
+                                indoorEndName.value = closestNode.name
+                            }
+                            drawIndoorFloor()
+                        }
+                    }
+
+                    async function startIndoorNav() {
+                        if (!indoorStartNode.value) {
+                            alert('请先在楼层地图上点击选择起点！')
+                            return
+                        }
+                        if (!indoorEndNode.value) {
+                            alert('请先在楼层地图上点击选择终点！')
+                            return
+                        }
+                        try {
+                            const resp = await fetch('/api/map/indoor/path', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    building_id: indoorBuildingId.value,
+                                    start_node_id: indoorStartNode.value.id,
+                                    end_node_id: indoorEndNode.value.id
+                                })
+                            })
+                            const data = await resp.json()
+                            if (data.success) {
+                                // 丰富路径数据，加入楼层名称
+                                const enrichedPath = (data.path || []).map(n => {
+                                    let floorName = ''
+                                    for (const f of indoorFloors.value) {
+                                        if (f.floor === n.floor) { floorName = f.name; break }
+                                    }
+                                    return { ...n, floor_name: floorName || (n.floor + '层') }
+                                })
+                                indoorPathResult.value = {
+                                    path: enrichedPath,
+                                    total_distance: data.total_distance,
+                                    steps: data.steps
+                                }
+                                // 更新当前楼层的路径展示
+                                updateCurrentFloorPathSegments()
+                                drawIndoorFloor()
+                                // 如果路径跨楼层，自动切换到路径起点所在楼层
+                                if (enrichedPath.length > 0 && enrichedPath[0].floor !== indoorFloor.value) {
+                                    switchFloor(enrichedPath[0].floor)
+                                }
+                            } else {
+                                alert('路径规划失败: ' + (data.error || '未知错误'))
+                            }
+                        } catch (e) {
+                            console.error('室内导航失败:', e)
+                            alert('室内导航请求失败')
+                        }
+                    }
+
+                    function clearIndoorRoute() {
+                        indoorPathResult.value = null
+                        indoorPathNodeIds.value = new Set()
+                        indoorPathEdgePairs.value = new Set()
+                        indoorStartNode.value = null
+                        indoorStartName.value = '未设置'
+                        indoorEndNode.value = null
+                        indoorEndName.value = '未设置'
+                        drawIndoorFloor()
+                    }
+
                     function autoLocateSpot(spotName) {
                         const tempSearch = new AMap.PlaceSearch({
                             pageSize: 10,
@@ -862,7 +1583,16 @@
                         startInfo, endInfo, transportMode, showRouteInfo,
                         routeDistance, routeTime, routeTransport,
                         toggleSidebar, goHome, setStartFromInput, setEndFromInput,
-                        startNavigation, clearRoute, handleLogout, checkLoginAndGo, goToLogin
+                        startNavigation, clearRoute, handleLogout, checkLoginAndGo, goToLogin,
+                        // 室内导航
+                        navMode, switchNavMode,
+                        indoorBuildings, indoorBuildingId, indoorBuildingName,
+                        indoorFloors, indoorFloor, indoorFloorName,
+                        indoorFloorNodes, indoorFloorEdges,
+                        indoorSelectMode, indoorStartNode, indoorStartName,
+                        indoorEndNode, indoorEndName, indoorPathResult,
+                        onBuildingChange, switchFloor, onCanvasClick,
+                        startIndoorNav, clearIndoorRoute
                     }
                 }
             })
