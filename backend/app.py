@@ -20,6 +20,7 @@ from backend.routes.recommend import recommend_bp
 from backend.routes.rating import rating_bp
 from backend.routes.preferences import preferences_bp
 from backend.routes.video import video_bp
+from backend.routes.map import map_bp
 
 
 def create_app():
@@ -52,6 +53,7 @@ def register_blueprints(app):
     app.register_blueprint(rating_bp)
     app.register_blueprint(preferences_bp)
     app.register_blueprint(video_bp)
+    app.register_blueprint(map_bp)
 
 
 def init_data():

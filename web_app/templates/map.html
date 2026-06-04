@@ -520,330 +520,358 @@
         </div>
     </div>
 
-    <script type="text/javascript">
-        window._AMapSecurityConfig = {
-            securityJsCode: '50f4e08548220138394d4e0b47ca4767'
-        };
-    </script>
-    <script type="text/javascript"
-        src="https://webapi.amap.com/maps?v=2.0&key=1d5753eadd7aa612016c702852090aea&plugin=AMap.Geocoder,AMap.PlaceSearch,AMap.Driving,AMap.Walking,AMap.Riding"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-    <script>
-        const { createApp, ref, onMounted } = Vue
+    <script type="text/javascript">
+        async function loadAmapConfig() {
+            try {
+                const response = await fetch('/api/map/amap/config');
+                const data = await response.json();
+                if (data.success) {
+                    window._AMapSecurityConfig = {
+                        securityJsCode: data.security_code
+                    };
 
-        const app = createApp({
-            delimiters: ['{$', '$}'],
-            setup() {
-                const isLoggedIn = ref(false)
-                const userName = ref('')
-                const showLoginModal = ref(false)
-                const pendingUrl = ref('')
-                const sidebarOpen = ref(false)
-                const startInput = ref('')
-                const endInput = ref('')
-                const startInfo = ref('未设置')
-                const endInfo = ref('未设置')
-                const transportMode = ref('driving')
-                const showRouteInfo = ref(false)
-                const routeDistance = ref('0')
-                const routeTime = ref('0')
-                const routeTransport = ref('驾车')
+                    const script = document.createElement('script');
+                    script.type = 'text/javascript';
+                    script.src = `https://webapi.amap.com/maps?v=2.0&key=${data.api_key}&plugin=AMap.Geocoder,AMap.PlaceSearch,AMap.Driving,AMap.Walking,AMap.Riding`;
+                    script.onload = () => {
+                        initApp();
+                    };
+                    script.onerror = () => {
+                        console.error('加载高德地图失败');
+                        alert('加载地图失败，请检查网络连接');
+                    };
+                    document.head.appendChild(script);
+                } else {
+                    console.error('加载高德地图配置失败:', data.error);
+                    alert('加载地图配置失败');
+                }
+            } catch (e) {
+                console.error('加载高德地图配置失败:', e);
+                alert('加载地图配置失败');
+            }
+        }
 
-                let map = null
-                let placeSearch = null
-                let geocoder = null
-                let currentRoutePlugin = null
-                let searchMarkers = []
-                let startPoint = null
-                let endPoint = null
-                let currentCity = '全国'
-                const center = [116.397, 39.909]
+        function initApp() {
+            const { createApp, ref, onMounted } = Vue
 
-                async function checkUserStatus() {
-                    try {
-                        const response = await fetch('/api/user/status')
-                        const data = await response.json()
-                        if (data.logged_in) {
-                            isLoggedIn.value = true
-                            userName.value = data.user_name
+            const app = createApp({
+                delimiters: ['{$', '$}'],
+                setup() {
+                    const isLoggedIn = ref(false)
+                    const userName = ref('')
+                    const showLoginModal = ref(false)
+                    const pendingUrl = ref('')
+                    const sidebarOpen = ref(false)
+                    const startInput = ref('')
+                    const endInput = ref('')
+                    const startInfo = ref('未设置')
+                    const endInfo = ref('未设置')
+                    const transportMode = ref('driving')
+                    const showRouteInfo = ref(false)
+                    const routeDistance = ref('0')
+                    const routeTime = ref('0')
+                    const routeTransport = ref('驾车')
+
+                    let map = null
+                    let placeSearch = null
+                    let geocoder = null
+                    let currentRoutePlugin = null
+                    let searchMarkers = []
+                    let startPoint = null
+                    let endPoint = null
+                    let currentCity = '全国'
+                    const center = [116.397, 39.909]
+
+                    async function checkUserStatus() {
+                        try {
+                            const response = await fetch('/api/user/status')
+                            const data = await response.json()
+                            if (data.logged_in) {
+                                isLoggedIn.value = true
+                                userName.value = data.user_name
+                            }
+                        } catch (e) { }
+                    }
+
+                    async function handleLogout() {
+                        try {
+                            await fetch('/logout', { method: 'GET' })
+                            window.location.href = '/'
+                        } catch (e) {
+                            window.location.href = '/logout'
                         }
-                    } catch (e) { }
-                }
-
-                async function handleLogout() {
-                    try {
-                        await fetch('/logout', { method: 'GET' })
-                        window.location.href = '/'
-                    } catch (e) {
-                        window.location.href = '/logout'
                     }
-                }
 
-                async function checkLoginAndGo(event, url) {
-                    if (isLoggedIn.value) {
-                        window.location.href = url
-                        return
-                    }
-                    try {
-                        const response = await fetch('/api/user/status')
-                        const data = await response.json()
-                        if (data.logged_in) {
-                            isLoggedIn.value = true
-                            userName.value = data.user_name
+                    async function checkLoginAndGo(event, url) {
+                        if (isLoggedIn.value) {
                             window.location.href = url
-                        } else {
+                            return
+                        }
+                        try {
+                            const response = await fetch('/api/user/status')
+                            const data = await response.json()
+                            if (data.logged_in) {
+                                isLoggedIn.value = true
+                                userName.value = data.user_name
+                                window.location.href = url
+                            } else {
+                                pendingUrl.value = url
+                                showLoginModal.value = true
+                            }
+                        } catch (e) {
                             pendingUrl.value = url
                             showLoginModal.value = true
                         }
-                    } catch (e) {
-                        pendingUrl.value = url
-                        showLoginModal.value = true
                     }
-                }
 
-                function goToLogin() {
-                    showLoginModal.value = false
-                    sessionStorage.setItem('redirectAfterLogin', pendingUrl.value)
-                    window.location.href = '/login'
-                }
+                    function goToLogin() {
+                        showLoginModal.value = false
+                        sessionStorage.setItem('redirectAfterLogin', pendingUrl.value)
+                        window.location.href = '/login'
+                    }
 
-                function toggleSidebar() {
-                    sidebarOpen.value = !sidebarOpen.value
-                }
+                    function toggleSidebar() {
+                        sidebarOpen.value = !sidebarOpen.value
+                    }
 
-                function updateSearchCity(lng, lat) {
-                    if (geocoder) {
-                        geocoder.getAddress([lng, lat], function (status, result) {
-                            if (status === 'complete' && result.regeocode) {
-                                const addressComponent = result.regeocode.addressComponent
-                                currentCity = addressComponent.city || addressComponent.province || '全国'
-                                placeSearch.setCity(currentCity)
+                    function updateSearchCity(lng, lat) {
+                        if (geocoder) {
+                            geocoder.getAddress([lng, lat], function (status, result) {
+                                if (status === 'complete' && result.regeocode) {
+                                    const addressComponent = result.regeocode.addressComponent
+                                    currentCity = addressComponent.city || addressComponent.province || '全国'
+                                    placeSearch.setCity(currentCity)
+                                }
+                            })
+                        }
+                    }
+
+                    function goHome() {
+                        let targetCenter = center
+                        if (startPoint) {
+                            targetCenter = [startPoint.lng, startPoint.lat]
+                        } else {
+                            targetCenter = map.getCenter().toArray()
+                        }
+                        map.setZoomAndCenter(15, targetCenter)
+                    }
+
+                    function clearSearchMarkers() {
+                        for (const marker of searchMarkers) {
+                            map.remove(marker)
+                        }
+                        searchMarkers = []
+                    }
+
+                    function showSearchMarkers(pois, settingType) {
+                        clearSearchMarkers()
+
+                        for (let i = 0; i < pois.length; i++) {
+                            const poi = pois[i]
+                            const marker = new AMap.Marker({
+                                position: [poi.location.lng, poi.location.lat],
+                                title: poi.name,
+                                map: map
+                            })
+
+                            marker.on('click', function () {
+                                if (settingType === 'start') {
+                                    startPoint = { name: poi.name, lng: poi.location.lng, lat: poi.location.lat }
+                                    startInfo.value = poi.name
+                                    updateSearchCity(poi.location.lng, poi.location.lat)
+                                } else if (settingType === 'end') {
+                                    endPoint = { name: poi.name, lng: poi.location.lng, lat: poi.location.lat }
+                                    endInfo.value = poi.name
+                                }
+                                map.setZoomAndCenter(16, [poi.location.lng, poi.location.lat])
+                                clearSearchMarkers()
+                            })
+                            searchMarkers.push(marker)
+                        }
+
+                        if (pois.length > 0) {
+                            map.setZoomAndCenter(15, [pois[0].location.lng, pois[0].location.lat])
+                        }
+                    }
+
+                    function setStartFromInput() {
+                        const keyword = startInput.value.trim()
+                        if (!keyword) {
+                            alert('请输入起点关键词')
+                            return
+                        }
+                        startInfo.value = '正在搜索，请点击地图上的标记选择...'
+                        placeSearch.search(keyword, function (status, result) {
+                            if (status === 'complete' && result.poiList && result.poiList.pois.length > 0) {
+                                showSearchMarkers(result.poiList.pois, 'start')
+                            } else {
+                                startInfo.value = '未找到地点'
+                                alert('未找到该地点，请尝试其他关键词')
                             }
                         })
                     }
-                }
 
-                function goHome() {
-                    let targetCenter = center
-                    if (startPoint) {
-                        targetCenter = [startPoint.lng, startPoint.lat]
-                    } else {
-                        targetCenter = map.getCenter().toArray()
-                    }
-                    map.setZoomAndCenter(15, targetCenter)
-                }
-
-                function clearSearchMarkers() {
-                    for (const marker of searchMarkers) {
-                        map.remove(marker)
-                    }
-                    searchMarkers = []
-                }
-
-                function showSearchMarkers(pois, settingType) {
-                    clearSearchMarkers()
-
-                    for (let i = 0; i < pois.length; i++) {
-                        const poi = pois[i]
-                        const marker = new AMap.Marker({
-                            position: [poi.location.lng, poi.location.lat],
-                            title: poi.name,
-                            map: map
+                    function setEndFromInput() {
+                        const keyword = endInput.value.trim()
+                        if (!keyword) {
+                            alert('请输入终点关键词')
+                            return
+                        }
+                        endInfo.value = '正在搜索，请点击地图上的标记选择...'
+                        placeSearch.search(keyword, function (status, result) {
+                            if (status === 'complete' && result.poiList && result.poiList.pois.length > 0) {
+                                showSearchMarkers(result.poiList.pois, 'end')
+                            } else {
+                                endInfo.value = '未找到地点'
+                                alert('未找到该地点，请尝试其他关键词')
+                            }
                         })
+                    }
 
-                        marker.on('click', function () {
-                            if (settingType === 'start') {
+                    function getTransportName() {
+                        if (transportMode.value === 'driving') return '驾车'
+                        if (transportMode.value === 'walking') return '步行'
+                        if (transportMode.value === 'bicycling') return '骑行'
+                        return '驾车'
+                    }
+
+                    function handleRouteResult(status, result) {
+                        if (status === 'complete') {
+                            const route = result.routes[0]
+                            const distance = Math.round(route.distance)
+                            const time = Math.round(route.time / 60)
+                            routeDistance.value = distance
+                            routeTime.value = time
+                            routeTransport.value = getTransportName()
+                            showRouteInfo.value = true
+                            map.setFitView()
+                        } else {
+                            alert('规划路线失败：' + result)
+                        }
+                    }
+
+                    function startNavigation() {
+                        if (!startPoint) {
+                            alert('请先设置起点！')
+                            return
+                        }
+                        if (!endPoint) {
+                            alert('请先设置终点！')
+                            return
+                        }
+
+                        const transport = transportMode.value
+
+                        if (currentRoutePlugin) {
+                            currentRoutePlugin.clear()
+                        }
+
+                        if (transport === 'driving') {
+                            AMap.plugin('AMap.Driving', function () {
+                                currentRoutePlugin = new AMap.Driving({ map: map, panel: null })
+                                currentRoutePlugin.search(
+                                    new AMap.LngLat(startPoint.lng, startPoint.lat),
+                                    new AMap.LngLat(endPoint.lng, endPoint.lat),
+                                    handleRouteResult
+                                )
+                            })
+                        } else if (transport === 'walking') {
+                            AMap.plugin('AMap.Walking', function () {
+                                currentRoutePlugin = new AMap.Walking({ map: map })
+                                currentRoutePlugin.search(
+                                    new AMap.LngLat(startPoint.lng, startPoint.lat),
+                                    new AMap.LngLat(endPoint.lng, endPoint.lat),
+                                    handleRouteResult
+                                )
+                            })
+                        } else if (transport === 'bicycling') {
+                            AMap.plugin('AMap.Riding', function () {
+                                currentRoutePlugin = new AMap.Riding({ map: map })
+                                currentRoutePlugin.search(
+                                    new AMap.LngLat(startPoint.lng, startPoint.lat),
+                                    new AMap.LngLat(endPoint.lng, endPoint.lat),
+                                    handleRouteResult
+                                )
+                            })
+                        }
+                    }
+
+                    function clearRoute() {
+                        clearSearchMarkers()
+                        if (currentRoutePlugin) {
+                            try { currentRoutePlugin.clear() } catch (e) { }
+                            currentRoutePlugin = null
+                        }
+                        map.clearMap()
+                        showRouteInfo.value = false
+                    }
+
+                    function autoLocateSpot(spotName) {
+                        const tempSearch = new AMap.PlaceSearch({
+                            pageSize: 10,
+                            city: '全国',
+                            extensions: 'all'
+                        })
+                        tempSearch.search(spotName, function (status, result) {
+                            if (status === 'complete' && result.poiList && result.poiList.pois.length > 0) {
+                                const poi = result.poiList.pois[0]
                                 startPoint = { name: poi.name, lng: poi.location.lng, lat: poi.location.lat }
                                 startInfo.value = poi.name
+                                startInput.value = poi.name
+                                map.setZoomAndCenter(16, [poi.location.lng, poi.location.lat])
                                 updateSearchCity(poi.location.lng, poi.location.lat)
-                            } else if (settingType === 'end') {
-                                endPoint = { name: poi.name, lng: poi.location.lng, lat: poi.location.lat }
-                                endInfo.value = poi.name
                             }
-                            map.setZoomAndCenter(16, [poi.location.lng, poi.location.lat])
-                            clearSearchMarkers()
                         })
-                        searchMarkers.push(marker)
                     }
 
-                    if (pois.length > 0) {
-                        map.setZoomAndCenter(15, [pois[0].location.lng, pois[0].location.lat])
-                    }
-                }
+                    function initMap() {
+                        map = new AMap.Map('container', {
+                            zoom: 15,
+                            center: center,
+                            viewMode: '2D'
+                        })
 
-                function setStartFromInput() {
-                    const keyword = startInput.value.trim()
-                    if (!keyword) {
-                        alert('请输入起点关键词')
-                        return
+                        placeSearch = new AMap.PlaceSearch({
+                            map: null,
+                            pageSize: 10,
+                            city: currentCity,
+                            extensions: 'all'
+                        })
+
+                        AMap.plugin('AMap.Geocoder', function () {
+                            geocoder = new AMap.Geocoder()
+                        })
                     }
-                    startInfo.value = '正在搜索，请点击地图上的标记选择...'
-                    placeSearch.search(keyword, function (status, result) {
-                        if (status === 'complete' && result.poiList && result.poiList.pois.length > 0) {
-                            showSearchMarkers(result.poiList.pois, 'start')
-                        } else {
-                            startInfo.value = '未找到地点'
-                            alert('未找到该地点，请尝试其他关键词')
+
+                    onMounted(() => {
+                        checkUserStatus()
+                        initMap()
+
+                        const urlParams = new URLSearchParams(window.location.search)
+                        const spotName = urlParams.get('spot')
+                        if (spotName) {
+                            setTimeout(() => {
+                                autoLocateSpot(spotName)
+                            }, 1000)
                         }
                     })
-                }
 
-                function setEndFromInput() {
-                    const keyword = endInput.value.trim()
-                    if (!keyword) {
-                        alert('请输入终点关键词')
-                        return
-                    }
-                    endInfo.value = '正在搜索，请点击地图上的标记选择...'
-                    placeSearch.search(keyword, function (status, result) {
-                        if (status === 'complete' && result.poiList && result.poiList.pois.length > 0) {
-                            showSearchMarkers(result.poiList.pois, 'end')
-                        } else {
-                            endInfo.value = '未找到地点'
-                            alert('未找到该地点，请尝试其他关键词')
-                        }
-                    })
-                }
-
-                function getTransportName() {
-                    if (transportMode.value === 'driving') return '驾车'
-                    if (transportMode.value === 'walking') return '步行'
-                    if (transportMode.value === 'bicycling') return '骑行'
-                    return '驾车'
-                }
-
-                function handleRouteResult(status, result) {
-                    if (status === 'complete') {
-                        const route = result.routes[0]
-                        const distance = Math.round(route.distance)
-                        const time = Math.round(route.time / 60)
-                        routeDistance.value = distance
-                        routeTime.value = time
-                        routeTransport.value = getTransportName()
-                        showRouteInfo.value = true
-                        map.setFitView()
-                    } else {
-                        alert('规划路线失败：' + result)
+                    return {
+                        isLoggedIn, userName, showLoginModal, sidebarOpen, startInput, endInput,
+                        startInfo, endInfo, transportMode, showRouteInfo,
+                        routeDistance, routeTime, routeTransport,
+                        toggleSidebar, goHome, setStartFromInput, setEndFromInput,
+                        startNavigation, clearRoute, handleLogout, checkLoginAndGo, goToLogin
                     }
                 }
+            })
 
-                function startNavigation() {
-                    if (!startPoint) {
-                        alert('请先设置起点！')
-                        return
-                    }
-                    if (!endPoint) {
-                        alert('请先设置终点！')
-                        return
-                    }
+            app.mount('#app')
+        }
 
-                    const transport = transportMode.value
-
-                    if (currentRoutePlugin) {
-                        currentRoutePlugin.clear()
-                    }
-
-                    if (transport === 'driving') {
-                        AMap.plugin('AMap.Driving', function () {
-                            currentRoutePlugin = new AMap.Driving({ map: map, panel: null })
-                            currentRoutePlugin.search(
-                                new AMap.LngLat(startPoint.lng, startPoint.lat),
-                                new AMap.LngLat(endPoint.lng, endPoint.lat),
-                                handleRouteResult
-                            )
-                        })
-                    } else if (transport === 'walking') {
-                        AMap.plugin('AMap.Walking', function () {
-                            currentRoutePlugin = new AMap.Walking({ map: map })
-                            currentRoutePlugin.search(
-                                new AMap.LngLat(startPoint.lng, startPoint.lat),
-                                new AMap.LngLat(endPoint.lng, endPoint.lat),
-                                handleRouteResult
-                            )
-                        })
-                    } else if (transport === 'bicycling') {
-                        AMap.plugin('AMap.Riding', function () {
-                            currentRoutePlugin = new AMap.Riding({ map: map })
-                            currentRoutePlugin.search(
-                                new AMap.LngLat(startPoint.lng, startPoint.lat),
-                                new AMap.LngLat(endPoint.lng, endPoint.lat),
-                                handleRouteResult
-                            )
-                        })
-                    }
-                }
-
-                function clearRoute() {
-                    clearSearchMarkers()
-                    if (currentRoutePlugin) {
-                        try { currentRoutePlugin.clear() } catch (e) { }
-                        currentRoutePlugin = null
-                    }
-                    map.clearMap()
-                    showRouteInfo.value = false
-                }
-
-                function autoLocateSpot(spotName) {
-                    const tempSearch = new AMap.PlaceSearch({
-                        pageSize: 10,
-                        city: '全国',
-                        extensions: 'all'
-                    })
-                    tempSearch.search(spotName, function (status, result) {
-                        if (status === 'complete' && result.poiList && result.poiList.pois.length > 0) {
-                            const poi = result.poiList.pois[0]
-                            startPoint = { name: poi.name, lng: poi.location.lng, lat: poi.location.lat }
-                            startInfo.value = poi.name
-                            startInput.value = poi.name
-                            map.setZoomAndCenter(16, [poi.location.lng, poi.location.lat])
-                            updateSearchCity(poi.location.lng, poi.location.lat)
-                        }
-                    })
-                }
-
-                function initMap() {
-                    map = new AMap.Map('container', {
-                        zoom: 15,
-                        center: center,
-                        viewMode: '2D'
-                    })
-
-                    placeSearch = new AMap.PlaceSearch({
-                        map: null,
-                        pageSize: 10,
-                        city: currentCity,
-                        extensions: 'all'
-                    })
-
-                    AMap.plugin('AMap.Geocoder', function () {
-                        geocoder = new AMap.Geocoder()
-                    })
-                }
-
-                onMounted(() => {
-                    checkUserStatus()
-                    initMap()
-
-                    const urlParams = new URLSearchParams(window.location.search)
-                    const spotName = urlParams.get('spot')
-                    if (spotName) {
-                        setTimeout(() => {
-                            autoLocateSpot(spotName)
-                        }, 1000)
-                    }
-                })
-
-                return {
-                    isLoggedIn, userName, showLoginModal, sidebarOpen, startInput, endInput,
-                    startInfo, endInfo, transportMode, showRouteInfo,
-                    routeDistance, routeTime, routeTransport,
-                    toggleSidebar, goHome, setStartFromInput, setEndFromInput,
-                    startNavigation, clearRoute, handleLogout, checkLoginAndGo, goToLogin
-                }
-            }
-        })
-
-        app.mount('#app')
+        // 加载高德地图配置并初始化应用
+        loadAmapConfig();
     </script>
 </body>
 

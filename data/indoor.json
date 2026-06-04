@@ -1,0 +1,121 @@
+{
+    "buildings": [
+        {
+            "id": "library",
+            "name": "图书馆",
+            "floors": [
+                {
+                    "floor": 1,
+                    "name": "一层",
+                    "nodes": [
+                        {"id": "lib1-1", "name": "正门", "x": 100, "y": 150, "type": "entrance"},
+                        {"id": "lib1-2", "name": "服务台", "x": 150, "y": 100, "type": "service"},
+                        {"id": "lib1-3", "name": "检索区", "x": 200, "y": 150, "type": "area"},
+                        {"id": "lib1-4", "name": "电梯", "x": 250, "y": 100, "type": "elevator"},
+                        {"id": "lib1-5", "name": "楼梯", "x": 250, "y": 200, "type": "stairs"},
+                        {"id": "lib1-6", "name": "报刊区", "x": 300, "y": 150, "type": "area"}
+                    ],
+                    "edges": [
+                        {"id": "lib1-e1", "from": "lib1-1", "to": "lib1-2", "distance": 50},
+                        {"id": "lib1-e2", "from": "lib1-2", "to": "lib1-3", "distance": 50},
+                        {"id": "lib1-e3", "from": "lib1-3", "to": "lib1-4", "distance": 50},
+                        {"id": "lib1-e4", "from": "lib1-3", "to": "lib1-5", "distance": 50},
+                        {"id": "lib1-e5", "from": "lib1-4", "to": "lib1-6", "distance": 50},
+                        {"id": "lib1-e6", "from": "lib1-5", "to": "lib1-6", "distance": 50},
+                        {"id": "lib1-e7", "from": "lib1-1", "to": "lib1-5", "distance": 100}
+                    ]
+                },
+                {
+                    "floor": 2,
+                    "name": "二层",
+                    "nodes": [
+                        {"id": "lib2-1", "name": "电梯口", "x": 250, "y": 100, "type": "elevator"},
+                        {"id": "lib2-2", "name": "楼梯口", "x": 250, "y": 200, "type": "stairs"},
+                        {"id": "lib2-3", "name": "社科书库", "x": 150, "y": 150, "type": "area"},
+                        {"id": "lib2-4", "name": "自然科学书库", "x": 350, "y": 150, "type": "area"},
+                        {"id": "lib2-5", "name": "自习区", "x": 250, "y": 280, "type": "area"}
+                    ],
+                    "edges": [
+                        {"id": "lib2-e1", "from": "lib2-1", "to": "lib2-3", "distance": 100},
+                        {"id": "lib2-e2", "from": "lib2-1", "to": "lib2-4", "distance": 100},
+                        {"id": "lib2-e3", "from": "lib2-2", "to": "lib2-3", "distance": 100},
+                        {"id": "lib2-e4", "from": "lib2-2", "to": "lib2-4", "distance": 100},
+                        {"id": "lib2-e5", "from": "lib2-1", "to": "lib2-5", "distance": 180},
+                        {"id": "lib2-e6", "from": "lib2-2", "to": "lib2-5", "distance": 80}
+                    ]
+                },
+                {
+                    "floor": 3,
+                    "name": "三层",
+                    "nodes": [
+                        {"id": "lib3-1", "name": "电梯口", "x": 250, "y": 100, "type": "elevator"},
+                        {"id": "lib3-2", "name": "楼梯口", "x": 250, "y": 200, "type": "stairs"},
+                        {"id": "lib3-3", "name": "外文图书区", "x": 150, "y": 150, "type": "area"},
+                        {"id": "lib3-4", "name": "电子阅览室", "x": 350, "y": 150, "type": "area"},
+                        {"id": "lib3-5", "name": "研讨室", "x": 250, "y": 280, "type": "area"}
+                    ],
+                    "edges": [
+                        {"id": "lib3-e1", "from": "lib3-1", "to": "lib3-3", "distance": 100},
+                        {"id": "lib3-e2", "from": "lib3-1", "to": "lib3-4", "distance": 100},
+                        {"id": "lib3-e3", "from": "lib3-2", "to": "lib3-3", "distance": 100},
+                        {"id": "lib3-e4", "from": "lib3-2", "to": "lib3-4", "distance": 100},
+                        {"id": "lib3-e5", "from": "lib3-1", "to": "lib3-5", "distance": 180},
+                        {"id": "lib3-e6", "from": "lib3-2", "to": "lib3-5", "distance": 80}
+                    ]
+                }
+            ],
+            "connections": [
+                {"from": "lib1-4", "to": "lib2-1", "type": "elevator"},
+                {"from": "lib1-5", "to": "lib2-2", "type": "stairs"},
+                {"from": "lib2-1", "to": "lib3-1", "type": "elevator"},
+                {"from": "lib2-2", "to": "lib3-2", "type": "stairs"}
+            ]
+        },
+        {
+            "id": "teaching1",
+            "name": "第一教学楼",
+            "floors": [
+                {
+                    "floor": 1,
+                    "name": "一层",
+                    "nodes": [
+                        {"id": "t1-1", "name": "南门", "x": 100, "y": 200, "type": "entrance"},
+                        {"id": "t1-2", "name": "北门", "x": 100, "y": 80, "type": "entrance"},
+                        {"id": "t1-3", "name": "电梯", "x": 200, "y": 140, "type": "elevator"},
+                        {"id": "t1-4", "name": "楼梯", "x": 300, "y": 140, "type": "stairs"},
+                        {"id": "t1-5", "name": "101教室", "x": 200, "y": 200, "type": "classroom"},
+                        {"id": "t1-6", "name": "102教室", "x": 300, "y": 200, "type": "classroom"}
+                    ],
+                    "edges": [
+                        {"id": "t1-e1", "from": "t1-1", "to": "t1-3", "distance": 100},
+                        {"id": "t1-e2", "from": "t1-2", "to": "t1-3", "distance": 60},
+                        {"id": "t1-e3", "from": "t1-3", "to": "t1-4", "distance": 100},
+                        {"id": "t1-e4", "from": "t1-3", "to": "t1-5", "distance": 60},
+                        {"id": "t1-e5", "from": "t1-4", "to": "t1-6", "distance": 60}
+                    ]
+                },
+                {
+                    "floor": 2,
+                    "name": "二层",
+                    "nodes": [
+                        {"id": "t2-1", "name": "电梯口", "x": 200, "y": 140, "type": "elevator"},
+                        {"id": "t2-2", "name": "楼梯口", "x": 300, "y": 140, "type": "stairs"},
+                        {"id": "t2-3", "name": "201教室", "x": 200, "y": 200, "type": "classroom"},
+                        {"id": "t2-4", "name": "202教室", "x": 300, "y": 200, "type": "classroom"},
+                        {"id": "t2-5", "name": "教师休息室", "x": 200, "y": 80, "type": "office"}
+                    ],
+                    "edges": [
+                        {"id": "t2-e1", "from": "t2-1", "to": "t2-2", "distance": 100},
+                        {"id": "t2-e2", "from": "t2-1", "to": "t2-3", "distance": 60},
+                        {"id": "t2-e3", "from": "t2-2", "to": "t2-4", "distance": 60},
+                        {"id": "t2-e4", "from": "t2-1", "to": "t2-5", "distance": 60}
+                    ]
+                }
+            ],
+            "connections": [
+                {"from": "t1-3", "to": "t2-1", "type": "elevator"},
+                {"from": "t1-4", "to": "t2-2", "type": "stairs"}
+            ]
+        }
+    ]
+}
