@@ -23,7 +23,8 @@ def diary_operations():
 
     if request.method == 'GET':
         # 返回所有用户的日记（全局共享）
-        all_diaries = diary_service.get_all_diaries()
+        sort = request.args.get('sort', 'time')
+        all_diaries = diary_service.get_all_diaries(sort=sort)
         return jsonify(all_diaries)
 
     elif request.method == 'POST':
@@ -65,6 +66,8 @@ def get_diary(global_id):
         diary_copy = dict(diary)
         diary_copy['like_count'] = len(diary_service.likes.get(gid, []))
         diary_copy['comment_count'] = len(diary_service.comments.get(gid, []))
+        # 增加浏览量
+        diary_service.increment_view(gid)
         return jsonify(diary_copy)
     return jsonify({'error': 'Diary not found'}), 404
 
