@@ -501,7 +501,7 @@
                 async function loadSpots(method) {
                     spotsLoading.value = true
                     try {
-                        const n = showAllSpots.value ? 99 : 6
+                        const n = showAllSpots.value ? 500 : 12
                         const response = await fetch(`/api/recommend/spots?method=${method}&n=${n}`)
                         spots.value = await response.json()
                     } catch (e) {
@@ -580,7 +580,7 @@
                 async function loadFood(method) {
                     foodLoading.value = true
                     try {
-                        const n = showAllFood.value ? 99 : 6
+                        const n = showAllFood.value ? 500 : 12
                         const response = await fetch(`/api/recommend/food?method=${method}&n=${n}`)
                         foodList.value = await response.json()
                     } catch (e) {
@@ -593,7 +593,7 @@
                 async function loadUniversities(method) {
                     universitiesLoading.value = true
                     try {
-                        const n = showAllUniversities.value ? 99 : 6
+                        const n = showAllUniversities.value ? 500 : 12
                         const response = await fetch(`/api/recommend/universities?method=${method}&n=${n}`)
                         universities.value = await response.json()
                     } catch (e) {

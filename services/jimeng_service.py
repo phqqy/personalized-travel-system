@@ -31,6 +31,22 @@ class JimengVideoService:
         self.access_key = config.VOLCENGINE_ACCESS_KEY
         self.secret_key = config.VOLCENGINE_SECRET_KEY
 
+        # Masked key for debug display
+        if self.access_key:
+            masked_ak = self.access_key[:8] + '***' + self.access_key[-4:] if len(self.access_key) > 12 else '***'
+        else:
+            masked_ak = '(空)'
+        masked_sk = '(已设置)' if self.secret_key else '(空)'
+
+        print(f"[INIT] JimengVideoService initialized")
+        print(f"[INIT]   Access Key: {masked_ak}")
+        print(f"[INIT]   Secret Key: {masked_sk}")
+
+        if not self.access_key or not self.secret_key:
+            print("[WARN] *** 火山引擎API密钥未配置！请在 .env 文件中设置 VOLCENGINE_ACCESS_KEY 和 VOLCENGINE_SECRET_KEY")
+            print("[WARN]  获取地址: https://console.volcengine.com/iam/keymanage")
+            print("[WARN]  开通即梦服务: https://console.volcengine.com/visual/experience")
+
         self.service = VisualService()
         self.service.set_ak(self.access_key)
         self.service.set_sk(self.secret_key)
@@ -129,6 +145,13 @@ class JimengVideoService:
                         'success': False,
                         'error': 'No task ID returned'
                     }
+            elif code == 50400:
+                return {
+                    'success': False,
+                    'error': 'Access Denied: 访问被拒绝，请检查火山引擎API密钥是否正确配置，以及是否已开通即梦AI（jimeng）服务',
+                    'code': 50400,
+                    'help': '开通地址: https://console.volcengine.com/visual/experience | 密钥管理: https://console.volcengine.com/iam/keymanage'
+                }
             elif code == 50430:
                 return {
                     'success': False,
