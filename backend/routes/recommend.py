@@ -16,10 +16,10 @@ recommend_bp = Blueprint('recommend', __name__, url_prefix='/api/recommend')
 def recommend_spots():
     """获取景点推荐"""
     method = request.args.get('method', 'hot')
-    # 处理n参数的非法输入，限制范围在1-20
+    # 处理n参数的非法输入，限制范围在1-500
     try:
         n = int(request.args.get('n', 6))
-        n = max(1, min(n, 20))
+        n = max(1, min(n, 500))
     except (ValueError, TypeError):
         n = 6
     
@@ -39,10 +39,10 @@ def recommend_spots():
 def recommend_food():
     """获取美食推荐"""
     method = request.args.get('method', 'hot')
-    # 处理n参数的非法输入，限制范围在1-20
+    # 处理n参数的非法输入，限制范围在1-500
     try:
         n = int(request.args.get('n', 6))
-        n = max(1, min(n, 20))
+        n = max(1, min(n, 500))
     except (ValueError, TypeError):
         n = 6
     
@@ -60,10 +60,10 @@ def recommend_food():
 def recommend_universities():
     """获取名校推荐"""
     method = request.args.get('method', 'hot')
-    # 处理n参数的非法输入，限制范围在1-20
+    # 处理n参数的非法输入，限制范围在1-500
     try:
         n = int(request.args.get('n', 6))
-        n = max(1, min(n, 20))
+        n = max(1, min(n, 500))
     except (ValueError, TypeError):
         n = 6
     

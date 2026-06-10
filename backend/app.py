@@ -19,11 +19,8 @@ from backend.routes.diary import diary_bp
 from backend.routes.recommend import recommend_bp
 from backend.routes.rating import rating_bp
 from backend.routes.preferences import preferences_bp
-
-# MySQL 迁移预留（取消注释以下两行即可启用）
-# from db import db, init_db
-# from models.user_model import User
-# from models.diary_model import Diary
+from backend.routes.video import video_bp
+from backend.routes.map import map_bp
 
 
 def create_app():
@@ -55,6 +52,8 @@ def register_blueprints(app):
     app.register_blueprint(recommend_bp)
     app.register_blueprint(rating_bp)
     app.register_blueprint(preferences_bp)
+    app.register_blueprint(video_bp)
+    app.register_blueprint(map_bp)
 
 
 def init_data():

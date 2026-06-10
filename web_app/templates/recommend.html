@@ -209,7 +209,7 @@
                         <div class="recommend-container">
                             <div v-for="spot in searchResults.spots" :key="spot.name" class="recommend-card">
                                 <a :href="'/map?spot=' + encodeURIComponent(spot.name)">
-                                    <img :src="'/static/images/spots/' + (spotImageMap[spot.name] || '故宫.jpg')"
+                                    <img :src="spot.image || '/static/images/spots/default.jpg'"
                                         :alt="spot.name" class="card-image">
                                     <div class="recommend-card-content">
                                         <h3>{$ spot.name $}</h3>
@@ -292,7 +292,7 @@
                 <template v-else>
                     <div v-for="spot in spots" :key="spot.name" class="recommend-card">
                         <a :href="'/map?spot=' + encodeURIComponent(spot.name)">
-                            <img :src="'/static/images/spots/' + (spotImageMap[spot.name] || '故宫.jpg')"
+                            <img :src="spot.image || '/static/images/spots/default.jpg'"
                                 :alt="spot.name" class="card-image">
                             <div class="recommend-card-content">
                                 <h3>{$ spot.name $}</h3>
@@ -322,7 +322,7 @@
                 <template v-else>
                     <div v-for="uni in universities" :key="uni.name" class="recommend-card">
                         <a :href="'/map?spot=' + encodeURIComponent(uni.name)">
-                            <img :src="'/static/images/spots/' + (universityImageMap[uni.name] || '故宫.jpg')"
+                            <img :src="uni.image || '/static/images/spots/default.jpg'"
                                 :alt="uni.name" class="card-image">
                             <div class="recommend-card-content">
                                 <h3>{$ uni.name $}</h3>
@@ -351,7 +351,7 @@
                 </div>
                 <template v-else>
                     <div v-for="item in foodList" :key="item.name" class="recommend-card">
-                        <img :src="'/static/images/food/' + (foodImageMap[item.name] || '北京烤鸭.jpg')"
+                        <img :src="item.image || '/static/images/food/default.jpg'"
                             :alt="item.name" class="card-image">
                         <div class="recommend-card-content">
                             <h3>{$ item.name $}</h3>
@@ -501,7 +501,7 @@
                 async function loadSpots(method) {
                     spotsLoading.value = true
                     try {
-                        const n = showAllSpots.value ? 99 : 6
+                        const n = showAllSpots.value ? 500 : 12
                         const response = await fetch(`/api/recommend/spots?method=${method}&n=${n}`)
                         spots.value = await response.json()
                     } catch (e) {
@@ -580,7 +580,7 @@
                 async function loadFood(method) {
                     foodLoading.value = true
                     try {
-                        const n = showAllFood.value ? 99 : 6
+                        const n = showAllFood.value ? 500 : 12
                         const response = await fetch(`/api/recommend/food?method=${method}&n=${n}`)
                         foodList.value = await response.json()
                     } catch (e) {
@@ -593,7 +593,7 @@
                 async function loadUniversities(method) {
                     universitiesLoading.value = true
                     try {
-                        const n = showAllUniversities.value ? 99 : 6
+                        const n = showAllUniversities.value ? 500 : 12
                         const response = await fetch(`/api/recommend/universities?method=${method}&n=${n}`)
                         universities.value = await response.json()
                     } catch (e) {
