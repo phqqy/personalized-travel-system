@@ -71,9 +71,9 @@ class RecommendService:
                         if '/food/' in image_path:
                             item['image'] = '/static/images/food/default.jpg'
                         else:
-                            item['image'] = '/static/images/spots/default.jpg'
+                            item['image'] = '/static/images/spots/picture.jpg'
                 else:
-                    item['image'] = '/static/images/spots/default.jpg'
+                    item['image'] = '/static/images/spots/picture.jpg'
                 
                 items.append(item)
         
