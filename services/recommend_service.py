@@ -34,6 +34,7 @@ class RecommendService:
             数据列表
         """
         raw_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'raw', filename)
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         
         if not os.path.exists(raw_path):
             return []
@@ -57,8 +58,22 @@ class RecommendService:
                     item['category'] = default_category
                 if not item.get('location'):
                     item['location'] = default_location
-                if not item.get('image'):
-                    item['image'] = '/static/images/default.jpg'
+                
+                # 检查图片文件是否存在，不存在则使用默认图片
+                image_path = item.get('image', '')
+                if image_path:
+                    # 将 /static/images/... 转换为实际文件路径
+                    # 静态文件实际在 web_app/static/ 下
+                    relative_path = os.path.join('web_app', image_path.lstrip('/'))
+                    full_path = os.path.join(base_dir, relative_path)
+                    if not os.path.exists(full_path):
+                        # 根据图片路径判断使用哪个默认图片
+                        if '/food/' in image_path:
+                            item['image'] = '/static/images/food/default.jpg'
+                        else:
+                            item['image'] = '/static/images/spots/default.jpg'
+                else:
+                    item['image'] = '/static/images/spots/default.jpg'
                 
                 items.append(item)
         
