@@ -22,17 +22,20 @@ class DiaryService:
             self._next_ids = {}          # {username: next_local_id}
             self.likes = {}              # {global_id: [username, ...]}
             self.comments = {}           # {global_id: [{id, username, content, created_at}, ...]}
+            self.views = {}              # {global_id: view_count}
         elif isinstance(raw_data, dict) and '_next_ids' in raw_data:
             self.user_diaries = raw_data.get('user_diaries', {})
             self._next_ids = raw_data.get('_next_ids', {})
             self.likes = raw_data.get('likes', {})
             self.comments = raw_data.get('comments', {})
+            self.views = raw_data.get('views', {})
         else:
             # 兼容旧数据格式
             self.user_diaries = raw_data
             self._next_ids = {}
             self.likes = {}
             self.comments = {}
+            self.views = {}
 
         # 确保已有日记都有 global_id（迁移旧数据）
         self._migrate_global_ids()
@@ -54,7 +57,8 @@ class DiaryService:
             'user_diaries': self.user_diaries,
             '_next_ids': self._next_ids,
             'likes': self.likes,
-            'comments': self.comments
+            'comments': self.comments,
+            'views': self.views
         })
 
     def _get_next_id(self, username):
@@ -69,10 +73,11 @@ class DiaryService:
         """获取用户的所有日记"""
         return self.user_diaries.get(username, [])
 
-    def get_all_diaries(self):
+    def get_all_diaries(self, sort='time'):
         """
         获取所有用户的所有日记（全局共享）
-        按创建时间倒序排列
+        sort='time': 按创建时间倒序排列（最新优先）
+        sort='popularity': 按热度排序（50*点赞+50*评论）
         """
         all_diaries = []
         for username, diaries in self.user_diaries.items():
@@ -82,9 +87,20 @@ class DiaryService:
                 diary_copy = dict(diary)
                 diary_copy['like_count'] = len(self.likes.get(gid, []))
                 diary_copy['comment_count'] = len(self.comments.get(gid, []))
+                # 计算热度值: 50*点赞 + 50*评论
+                diary_copy['popularity'] = (
+                    50 * diary_copy['like_count'] +
+                    50 * diary_copy['comment_count']
+                )
                 all_diaries.append(diary_copy)
 
-        all_diaries.sort(key=lambda d: d.get('created_at', ''), reverse=True)
+        if sort == 'popularity':
+            # 按热度从高到低排序
+            all_diaries.sort(key=lambda d: d.get('popularity', 0), reverse=True)
+        else:
+            # 默认按时间倒序（最新优先）
+            all_diaries.sort(key=lambda d: d.get('created_at', ''), reverse=True)
+
         return all_diaries
 
     def get_diary_by_global_id(self, global_id):
@@ -242,6 +258,17 @@ class DiaryService:
                 self.save()
                 return True
         return False
+
+    # ==================== 浏览量功能 ====================
+
+    def increment_view(self, global_id):
+        """
+        增加日记浏览量
+        """
+        if global_id not in self.views:
+            self.views[global_id] = 0
+        self.views[global_id] += 1
+        self.save()
 
     # ==================== 导出/导入 ====================
 
